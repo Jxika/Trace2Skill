@@ -1,7 +1,7 @@
 """
 Skill Evolving Agent — iteratively improves a skill from error analysis data.
 
-Reads structured error-analysis JSON (from parse_error_analysis_outputs.py),
+Reads structured error-analysis JSON,
 calls an LLM with the current skill content + error items, parses structured
 edits from the response, and applies them to disk.
 
@@ -557,7 +557,7 @@ class SkillEvolver:
 
         ``patterns`` is a dict with keys like ``"failure_cause"`` and
         ``"failure_memory"``, each mapping to a list of pattern dicts
-        produced by ``compress_skill_errors.py --parsed_output``.
+        produced by an upstream pattern-compression step.
         """
         parts: list[str] = []
 
@@ -1500,8 +1500,7 @@ class SkillEvolver:
         """Evolve the skill using compressed failure patterns.
 
         Instead of processing raw error records one-by-one, this method
-        takes the pre-compressed patterns (output of ``compress_skill_errors.py
-        --parsed_output``) and feeds them to the LLM in batches.
+        takes pre-compressed patterns and feeds them to the LLM in batches.
 
         Each batch contains one or more patterns across all item types
         (failure_cause, failure_memory). Patterns are interleaved by index

@@ -202,7 +202,6 @@ def run_error_analysis(
     generation_config: dict | None = None,
     llm_client: str = "openai",
     api_chat_config: str = "config/llm_api.json",
-    use_skill_prompt: bool = False,
     verbose: bool = True,
 ) -> str:
     """
@@ -218,7 +217,6 @@ def run_error_analysis(
         base_url: OpenAI-compatible base URL
         api_key: API key
         generation_config: Optional generation config for the model client
-        use_skill_prompt: If True, use the skill-based system prompt
         verbose: Whether to print agent debug output
 
     Returns:
@@ -228,10 +226,7 @@ def run_error_analysis(
 
     evaluate_usage = build_evaluate_usage(analysis_dir, answer_position)
 
-    system_prompt_path = SYSTEM_PROMPT_PATH
-    if use_skill_prompt:
-        system_prompt_path = SCRIPT_DIR / "error_analysis_system_skill.txt"
-    system_prompt = format_system_prompt(analysis_dir, system_prompt_path)
+    system_prompt = format_system_prompt(analysis_dir, SYSTEM_PROMPT_PATH)
     user_prompt = format_user_prompt(agent_log_text, analysis_dir, evaluate_usage)
 
     bash_tool = create_bash_tool(working_dir=analysis_dir)

@@ -45,28 +45,41 @@ The runtime skill tree in `spreadsheet_agent/skills/` includes the released `xls
 
 - `run_spreadsheetbench.py`
   Runs SpreadsheetBench with the preloaded-skill spreadsheet-agent setup used in this release.
+- `evaluate_with_official.py`
+  Evaluates SpreadsheetBench outputs with the official scorer when available, and falls back to the bundled compatible scorer otherwise.
+- `analyze_results.py`
+  Matches evaluation outputs with trajectory logs for failure triage.
+- `analysis/run_error_analysis.py`
+  Runs the paper’s agentic error analyst and writes pass-gated parsed records to `parsed_error_records.json`.
+- `analysis/run_error_analysis_llm.py`
+  Runs the single-call LLM error-analysis baseline and writes `parsed_error_records.json`.
+- `analysis/run_success_analysis_llm.py`
+  Runs the single-call success analyst and writes `parsed_success_records.json`.
 - `spreadsheet_agent/skills/`
   Includes the spreadsheet-agent skill tree used by the released benchmark setup.
 - `released_skills/`
   Includes the four released paper skills listed above.
 - `skill_evolver/`
   Includes the public parallel skill-evolution entrypoints and their direct support modules for Trace2Skill patch proposal and consolidation.
-- `run_error_analysis.py` and `analysis/`
-  Includes the error analysis, success analysis, parsing, and compression scripts used by the trajectory-to-skill workflow.
-- `evaluate_outputs.py`
-  Scores SpreadsheetBench outputs against the benchmark ground truth.
 
 ## Main Entry Points
 
 ```bash
 python run_spreadsheetbench.py --data_path <dataset> --model <model>
-python run_error_analysis.py --help
+python evaluate_with_official.py --help
+python analyze_results.py --help
+python analysis/run_error_analysis.py --help
 python analysis/run_error_analysis_llm.py --help
 python analysis/run_success_analysis_llm.py --help
 python -m skill_evolver.run_parallel_skill_evolution --help
-python -m skill_evolver.run_parallel_success_skill_evolution --help
 python -m skill_evolver.run_parallel_combined_skill_evolution --help
 ```
+
+Analysis scripts now emit parsed JSON automatically:
+
+- `analysis/run_error_analysis.py` and `analysis/run_error_analysis_llm.py` write `parsed_error_records.json`
+- `analysis/run_success_analysis_llm.py` writes `parsed_success_records.json`
+- the skill-evolver entrypoints accept either those JSON files or the analysis output directories directly
 
 ## Repository Scope
 
@@ -82,8 +95,9 @@ trace2skill/
 ├── skill_evolver/
 ├── spreadsheet_agent/
 ├── src/react_agent/
-├── evaluate_outputs.py
-├── run_error_analysis.py
+├── evaluate_with_official.py
+├── analyze_results.py
+├── analysis/run_error_analysis.py
 └── run_spreadsheetbench.py
 ```
 

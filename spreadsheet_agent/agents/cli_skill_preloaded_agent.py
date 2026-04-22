@@ -8,7 +8,9 @@ when to read a skill file — the full guidance is already available in context.
 """
 
 import os
+import re
 import sys
+from dataclasses import dataclass
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
@@ -16,8 +18,61 @@ from react_agent import Tool
 
 from .base import BaseSpreadsheetAgent
 from ..tools import create_bash_tool
-from .cli_skill_agent import SKILLS_DIR, SkillMetadata, discover_skills
 from ..system_prompts import render_full_system_prompt
+
+
+SKILLS_DIR = os.path.join(os.path.dirname(__file__), "..", "skills")
+
+
+@dataclass
+class SkillMetadata:
+    name: str
+    description: str
+    file_path: str
+
+
+def extract_skill_metadata(skill_file: str) -> SkillMetadata | None:
+    try:
+        with open(skill_file, "r", encoding="utf-8") as handle:
+            content = handle.read()
+    except OSError:
+        return None
+
+    frontmatter_match = re.match(r"^---\s*\n(.*?)\n---", content, re.DOTALL)
+    if not frontmatter_match:
+        return None
+
+    frontmatter = frontmatter_match.group(1)
+    name_match = re.search(r'^name:\s*["\']?([^"\'\n]+)["\']?\s*$', frontmatter, re.MULTILINE)
+    desc_match = re.search(
+        r'^description:\s*["\']?([^"\'\n]+)["\']?\s*$',
+        frontmatter,
+        re.MULTILINE,
+    )
+    if not name_match:
+        return None
+
+    return SkillMetadata(
+        name=name_match.group(1).strip(),
+        description=desc_match.group(1).strip() if desc_match else "",
+        file_path=skill_file,
+    )
+
+
+def discover_skills(skills_dir: str) -> list[SkillMetadata]:
+    skills = []
+    if not os.path.exists(skills_dir):
+        return skills
+
+    for entry in sorted(os.listdir(skills_dir)):
+        skill_dir = os.path.join(skills_dir, entry)
+        skill_file = os.path.join(skill_dir, "SKILL.md")
+        if not (os.path.isdir(skill_dir) and os.path.exists(skill_file)):
+            continue
+        metadata = extract_skill_metadata(skill_file)
+        if metadata is not None:
+            skills.append(metadata)
+    return skills
 
 
 def read_skill_content(skill: SkillMetadata) -> str:

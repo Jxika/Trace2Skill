@@ -31,6 +31,17 @@ from skill_evolver.skill_evolving_agent import QUICK_VALIDATE_SCRIPT
 log = logging.getLogger(__name__)
 
 
+def _resolve_combined_input_path(path: Path, default_filename: str) -> Path:
+    if path.is_file():
+        return path
+    if not path.is_dir():
+        raise FileNotFoundError(f"Input path not found: {path}")
+    candidate = path / default_filename
+    if candidate.is_file():
+        return candidate
+    raise FileNotFoundError(f"Could not find {default_filename} in {path}")
+
+
 def detect_combined_input_mode(error_input: object, success_input: object, requested_mode: str) -> str:
     if requested_mode != "auto":
         return requested_mode
@@ -70,8 +81,18 @@ def main() -> None:
         description="Evolve a skill from parsed error and success analysis records",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--error-json", required=True, type=Path, help="Path to parsed error analysis JSON")
-    parser.add_argument("--success-json", required=True, type=Path, help="Path to parsed success analysis JSON")
+    parser.add_argument(
+        "--error-json",
+        required=True,
+        type=Path,
+        help="Path to parsed error analysis JSON or an error-analysis output directory",
+    )
+    parser.add_argument(
+        "--success-json",
+        required=True,
+        type=Path,
+        help="Path to parsed success analysis JSON or a success-analysis output directory",
+    )
     parser.add_argument("--skill-dir", required=True, type=Path, help="Path to skill directory to evolve")
     parser.add_argument(
         "--data-path",
@@ -178,11 +199,15 @@ def main() -> None:
         datefmt="%H:%M:%S",
     )
 
-    if not args.error_json.exists():
-        log.error("Error JSON not found: %s", args.error_json)
+    try:
+        args.error_json = _resolve_combined_input_path(args.error_json, "parsed_error_records.json")
+    except FileNotFoundError as exc:
+        log.error("%s", exc)
         sys.exit(1)
-    if not args.success_json.exists():
-        log.error("Success JSON not found: %s", args.success_json)
+    try:
+        args.success_json = _resolve_combined_input_path(args.success_json, "parsed_success_records.json")
+    except FileNotFoundError as exc:
+        log.error("%s", exc)
         sys.exit(1)
     if args.data_path is not None and not args.data_path.exists():
         log.error("Dataset path not found: %s", args.data_path)

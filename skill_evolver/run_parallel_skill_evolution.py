@@ -34,7 +34,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import evaluate_outputs
+from spreadsheetbench_support import load_dataset
 from src.react_agent.models import ApiChatClient, OpenAIClient
 from skill_evolver.skill_evolving_agent import PROMPT_VARIANTS, QUICK_VALIDATE_SCRIPT
 from skill_evolver.parallel_evolving_agent import ParallelSkillEvolver
@@ -130,7 +130,7 @@ def _load_dataset_task_ids(
     sample_task_count: int | None = None,
 ) -> list[str]:
     """Load task ids from the dataset using SpreadsheetBench runner semantics."""
-    dataset = evaluate_outputs.load_dataset(str(data_path))
+    dataset = load_dataset(str(data_path))
     end = end_idx if end_idx is not None else len(dataset)
     sliced_dataset = dataset[start_idx or 0:end]
     task_ids = [str(item.get("id")) for item in sliced_dataset if item.get("id") is not None]
@@ -168,6 +168,24 @@ def backup_skill(skill_dir: Path) -> Path:
     backup_dir = skill_dir.parent / f"{skill_dir.name}_backup_{timestamp}"
     shutil.copytree(skill_dir, backup_dir)
     return backup_dir
+
+
+def _resolve_error_input_path(path: Path) -> Path:
+    if path.is_file():
+        return path
+    if not path.is_dir():
+        raise FileNotFoundError(f"Input path not found: {path}")
+    candidates = [
+        path / "parsed_error_records.json",
+        path / "error_records.json",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(
+        f"Could not find parsed error records in {path}. Expected one of: "
+        + ", ".join(str(candidate.name) for candidate in candidates)
+    )
 
 
 def _read_skill_files(skill_dir: Path) -> dict[str, str]:
@@ -218,7 +236,7 @@ def main() -> None:
         "--input-json",
         required=True,
         type=Path,
-        help="Path to parsed error analysis JSON",
+        help="Path to parsed error analysis JSON or an analysis output directory",
     )
     parser.add_argument(
         "--skill-dir",
@@ -445,8 +463,10 @@ def main() -> None:
             logging.getLogger(noisy_logger).setLevel(logging.WARNING)
 
     # Validate inputs
-    if not args.input_json.exists():
-        log.error("Input JSON not found: %s", args.input_json)
+    try:
+        args.input_json = _resolve_error_input_path(args.input_json)
+    except FileNotFoundError as exc:
+        log.error("%s", exc)
         sys.exit(1)
     if not args.skill_dir.is_dir():
         log.error("Skill directory not found: %s", args.skill_dir)

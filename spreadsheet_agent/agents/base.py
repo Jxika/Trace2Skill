@@ -61,7 +61,7 @@ class ChatHistoryLogger:
         if self.log_filename:
             filename = self.log_filename
         elif context and context.instance_id:
-            # Use instance_id for filename (e.g., "cli_skill_agent_13-1.md")
+            # Use instance_id for filename (e.g., "cli_skill_preloaded_agent_13-1.md")
             filename = f"{agent_name}_{context.instance_id}.{ext}"
         else:
             filename = f"{agent_name}_{timestamp}.{ext}"

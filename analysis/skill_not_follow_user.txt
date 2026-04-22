@@ -1,5 +1,0 @@
-Here is the trajectory:
-
-<agent_with_skill>
-{agent_with_skill_trajectory}
-</agent_with_skill>

@@ -6,13 +6,9 @@ this module:
 
 1. MAP: Each batch of error records independently proposes a concise
    instruction-based patch against a frozen snapshot of the original skill.
-2. REDUCE: Patches are merged hierarchically (like the analysis/
-   compression pipeline) until one final merged patch remains.
+2. REDUCE: Patches are merged hierarchically until one final merged patch remains.
 3. APPLY: The final merged patch is converted to full file content
    using the existing full-file JSON schema, then applied and validated.
-
-This mirrors the compress_skill_errors.py -> meta_compress pipeline
-but applied to skill editing instead of error compression.
 """
 
 from __future__ import annotations
@@ -167,7 +163,7 @@ MARKDOWN_TRANSLATION_SYSTEM_PROMPT = load_prompt_template(
 
 
 # ---------------------------------------------------------------------------
-# Batching helper (adapted from compress_skill_errors.py)
+# Batching helper for balanced map-phase work splitting
 # ---------------------------------------------------------------------------
 
 

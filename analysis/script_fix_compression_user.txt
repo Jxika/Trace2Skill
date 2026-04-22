@@ -1,5 +1,0 @@
-Here is the collection of passed Script Fix Items to reduce:
-
-<extracted_items>
-{extracted_items}
-</extracted_items>

@@ -3,8 +3,7 @@
 LLM-only error analysis pipeline for failed spreadsheet agent runs.
 
 Analyzes each failed agent log with a single LLM call — no ReAct agent,
-no file-system access, no ground-truth comparison.  Follows the same
-MapReduce structure as analyze_agent_behavior.py:
+no file-system access, no ground-truth comparison.
 
   Map  : one LLM call per instance  (parallel via ThreadPoolExecutor)
   Write: per-instance Markdown report saved to --output_dir
@@ -46,6 +45,11 @@ from pathlib import Path
 from openai import OpenAI
 from tqdm import tqdm
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from analysis.report_parsing import collect_error_records
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SYSTEM_PROMPT_PATH = SCRIPT_DIR / "error_analysis_system_llm.txt"
@@ -89,7 +93,7 @@ def parse_log_filename(name: str) -> tuple[str, str] | None:
     The instance_id is the last underscore-separated component before the outcome tag.
     Examples:
         cli_only_agent_10747_FAILED.md  -> ("10747", "FAILED")
-        cli_skill_agent_105-24_SUCCEED.md -> ("105-24", "SUCCEED")
+        cli_skill_preloaded_agent_105-24_SUCCEED.md -> ("105-24", "SUCCEED")
     """
     if not name.endswith(".md"):
         return None
@@ -356,6 +360,10 @@ def main():
 
     if not tasks:
         print("Nothing to do.")
+        parsed_records, _, _ = collect_error_records(args.output_dir)
+        parsed_output = Path(args.output_dir) / "parsed_error_records.json"
+        parsed_output.write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
+        print(f"Parsed records:   {len(parsed_records)} -> {parsed_output}")
         return
 
     max_workers = args.max_workers or min(32, (os.cpu_count() or 1) * 4)
@@ -384,6 +392,11 @@ def main():
                     tqdm.write(f"{iid}: ERROR: {exc}")
                 finally:
                     pbar.update(1)
+
+    parsed_records, _, _ = collect_error_records(args.output_dir)
+    parsed_output = Path(args.output_dir) / "parsed_error_records.json"
+    parsed_output.write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
+    print(f"Parsed records:   {len(parsed_records)} -> {parsed_output}")
 
 
 if __name__ == "__main__":

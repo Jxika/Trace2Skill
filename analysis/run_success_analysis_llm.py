@@ -48,6 +48,11 @@ from pathlib import Path
 from openai import OpenAI
 from tqdm import tqdm
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from analysis.report_parsing import collect_success_records
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SYSTEM_PROMPT_PATH = SCRIPT_DIR / "success_analysis_system_llm.txt"
@@ -91,7 +96,7 @@ def parse_log_filename(name: str) -> tuple[str, str] | None:
     The instance_id is the last underscore-separated component before the outcome tag.
     Examples:
         cli_only_agent_10747_SUCCEED.md  -> ("10747", "SUCCEED")
-        cli_skill_agent_105-24_FAILED.md -> ("105-24", "FAILED")
+        cli_skill_preloaded_agent_105-24_FAILED.md -> ("105-24", "FAILED")
     """
     if not name.endswith(".md"):
         return None
@@ -357,6 +362,10 @@ def main():
 
     if not tasks:
         print("Nothing to do.")
+        parsed_records = collect_success_records(args.output_dir)
+        parsed_output = Path(args.output_dir) / "parsed_success_records.json"
+        parsed_output.write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
+        print(f"Parsed records:   {len(parsed_records)} -> {parsed_output}")
         return
 
     max_workers = args.max_workers or min(32, (os.cpu_count() or 1) * 4)
@@ -385,6 +394,11 @@ def main():
                     tqdm.write(f"{iid}: ERROR: {exc}")
                 finally:
                     pbar.update(1)
+
+    parsed_records = collect_success_records(args.output_dir)
+    parsed_output = Path(args.output_dir) / "parsed_success_records.json"
+    parsed_output.write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
+    print(f"Parsed records:   {len(parsed_records)} -> {parsed_output}")
 
 
 if __name__ == "__main__":

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import glob
-import inspect
 import json
 import os
 import shutil
@@ -21,12 +20,16 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-# Ensure project root is on sys.path so imports work
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+SRC_DIR = ROOT_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
-import evaluate_outputs
+from analysis.report_parsing import collect_error_records
 from analysis.error_analysis_agent import run_error_analysis
-from analysis.error_analysis_agent_tolerant import run_error_analysis_tolerant
+from spreadsheetbench_support import find_spreadsheet_dir, load_dataset
 
 
 def parse_generation_config(generation_config: str | None) -> dict:
@@ -49,13 +52,6 @@ def build_generation_config(args) -> dict:
     seed_config = {"seed": args.seed} if args.seed is not None else {}
     generation_config.update(seed_config)
     return generation_config
-
-
-def _call_with_supported_kwargs(func, **kwargs):
-    """Call a function while dropping kwargs unsupported by older implementations."""
-    parameters = inspect.signature(func).parameters
-    filtered_kwargs = {key: value for key, value in kwargs.items() if key in parameters}
-    return func(**filtered_kwargs)
 
 
 def find_log_file(logs_dir: str, instance_id: str) -> str | None:
@@ -86,15 +82,14 @@ def find_work_dir(work_dir: str, instance_id: str) -> str | None:
 
 def build_instance_index(data_path: str) -> dict[str, dict]:
     """Load the dataset once and return an id->item mapping."""
-    dataset = evaluate_outputs.load_dataset(data_path)
+    dataset = load_dataset(data_path)
     return {str(item.get("id")): item for item in dataset if "id" in item}
 
 
 def find_gold_file(data_path: str, instance: dict) -> str | None:
-    """Find the ground-truth file for an instance using evaluate_outputs helpers."""
-    # Ensure id is a string — evaluate_outputs.find_spreadsheet_dir uses it in os.path.join
+    """Find the ground-truth file for an instance."""
     inst = {**instance, "id": str(instance["id"])}
-    spreadsheet_dir = evaluate_outputs.find_spreadsheet_dir(data_path, inst)
+    spreadsheet_dir = find_spreadsheet_dir(data_path, inst)
     if spreadsheet_dir is None:
         return None
 
@@ -115,7 +110,7 @@ def _parse_log_filename(name: str) -> tuple[str, bool] | None:
 
     Expected patterns:
         cli_only_agent_10747_FAILED.md  -> ("10747", True)
-        cli_skill_agent_105-24_SUCCEED.md -> ("105-24", False)
+        cli_skill_preloaded_agent_105-24_SUCCEED.md -> ("105-24", False)
     """
     if not name.endswith(".md"):
         return None
@@ -311,37 +306,19 @@ def run_single_instance(
 
     # Run the analysis agent
     try:
-        if args.tolerant:
-            report = _call_with_supported_kwargs(
-                run_error_analysis_tolerant,
-                analysis_dir=os.path.abspath(analysis_dir),
-                agent_log_content=log_content,
-                model=args.model,
-                answer_position=answer_position,
-                max_turns=args.max_turns,
-                base_url=args.base_url,
-                api_key=args.api_key,
-                generation_config=args.generation_config_dict,
-                llm_client=args.llm_client,
-                api_chat_config=args.api_chat_config,
-                verbose=args.verbose,
-            )
-        else:
-            report = _call_with_supported_kwargs(
-                run_error_analysis,
-                analysis_dir=os.path.abspath(analysis_dir),
-                agent_log_content=log_content,
-                model=args.model,
-                answer_position=answer_position,
-                max_turns=args.max_turns,
-                base_url=args.base_url,
-                api_key=args.api_key,
-                generation_config=args.generation_config_dict,
-                llm_client=args.llm_client,
-                api_chat_config=args.api_chat_config,
-                use_skill_prompt=args.skill,
-                verbose=args.verbose,
-            )
+        report = run_error_analysis(
+            analysis_dir=os.path.abspath(analysis_dir),
+            agent_log_content=log_content,
+            model=args.model,
+            answer_position=answer_position,
+            max_turns=args.max_turns,
+            base_url=args.base_url,
+            api_key=args.api_key,
+            generation_config=args.generation_config_dict,
+            llm_client=args.llm_client,
+            api_chat_config=args.api_chat_config,
+            verbose=args.verbose,
+        )
         error = None
     except Exception as e:
         log(f"  ERROR: Analysis failed for {instance_id}: {e}")
@@ -409,15 +386,10 @@ def main():
         help="Seed merged into generation config",
     )
     parser.add_argument("--max_turns", type=int, default=20, help="Max agent turns (default: 20)")
-    mode_group = parser.add_mutually_exclusive_group()
-    mode_group.add_argument("--skill", action="store_true", help="Use skill-based system prompt")
-    mode_group.add_argument(
-        "--tolerant",
-        action="store_true",
-        help=(
-            "Use the tolerant analysis mode: agent diagnoses and reports the failure "
-            "without needing to fix it (no PASS-gated completion check)"
-        ),
+    parser.add_argument(
+        "--parsed_output",
+        default=None,
+        help="Optional path for parsed JSON records (default: <output_dir>/parsed_error_records.json)",
     )
     parser.add_argument("--workers", type=int, default=1, help="Number of parallel workers")
     parser.add_argument("--verbose", action="store_true", help="Verbose logging")
@@ -474,12 +446,22 @@ def main():
                 )
             pbar.update(1)
 
+    def write_parsed_output() -> str:
+        parsed_records, passed, total = collect_error_records(args.output_dir)
+        parsed_output = args.parsed_output or os.path.join(args.output_dir, "parsed_error_records.json")
+        Path(parsed_output).write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
+        print(
+            f"Parsed pass-gated records: {len(parsed_records)} from {passed}/{total} reports -> {parsed_output}"
+        )
+        return parsed_output
+
     if args.workers <= 1 or len(instance_ids) <= 1:
         for instance_id in instance_ids:
             result = run_single_instance(instance_id, args, instance_index)
             progress_update(result)
         pbar.close()
         print(f"\nDone. Results in: {args.output_dir}")
+        write_parsed_output()
         return
 
     num_workers = min(args.workers, len(instance_ids))
@@ -512,6 +494,7 @@ def main():
     failed = sum(1 for r in results if r.get("error"))
     print(f"\nDone. Results in: {args.output_dir}")
     print(f"Summary: total={len(instance_ids)} skipped={skipped} failed={failed}")
+    write_parsed_output()
 
 
 def _run_repeat_error_analysis(args) -> None:
@@ -549,6 +532,15 @@ def _run_repeat_error_analysis(args) -> None:
                 )
             pbar.update(1)
 
+    def write_parsed_output() -> str:
+        parsed_records, passed, total = collect_error_records(args.output_dir)
+        parsed_output = args.parsed_output or os.path.join(args.output_dir, "parsed_error_records.json")
+        Path(parsed_output).write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
+        print(
+            f"Parsed pass-gated records: {len(parsed_records)} from {passed}/{total} reports -> {parsed_output}"
+        )
+        return parsed_output
+
     def run_one(composite_id: str, original_id: str, log_path: str) -> dict:
         # Work dir may be in seed subdir: derive from log_path's parent
         seed_dir = os.path.dirname(log_path)  # e.g. logs/seed_42
@@ -574,6 +566,7 @@ def _run_repeat_error_analysis(args) -> None:
             progress_update(result)
         pbar.close()
         print(f"\nDone. Results in: {args.output_dir}")
+        write_parsed_output()
         return
 
     print_lock = threading.Lock()
@@ -601,6 +594,7 @@ def _run_repeat_error_analysis(args) -> None:
     failed = sum(1 for r in results if r.get("error"))
     print(f"\nDone. Results in: {args.output_dir}")
     print(f"Summary: total={len(repeat_instances)} skipped={skipped} failed={failed}")
+    write_parsed_output()
 
 
 if __name__ == "__main__":
