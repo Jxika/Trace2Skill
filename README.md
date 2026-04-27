@@ -1,122 +1,166 @@
-# Trace2Skill
+<div align="center">
+<h1>Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills</h1>
 
-Official code and released spreadsheet skills for:
+<!-- Badges -->
+<a href="https://github.com/Qwen-Applications">
+  <img src="https://img.shields.io/badge/Qwen-Applications-4433FF?style=for-the-badge" alt="Qwen Applications">
+</a>
+<a href="https://arxiv.org/abs/2603.25158">
+  <img src="https://img.shields.io/badge/arXiv-2603.25158-b31b1b.svg?style=for-the-badge" alt="arXiv">
+</a>
+<a href="https://github.com/Qwen-Applications/Trace2Skill">
+  <img src="https://img.shields.io/badge/Github-Code-black?style=for-the-badge&logo=github" alt="Github">
+</a>
+<a href="https://opensource.org/licenses/Apache-2.0">
+  <img src="https://img.shields.io/badge/License-Apache%202.0-green.svg?style=for-the-badge" alt="License">
+</a>
 
-**Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills**  
-Paper: <https://arxiv.org/html/2603.25158v3>
+<p align="center">
+  <i><b>Qwen Large Model Application Team, Alibaba</b></i>
+</p>
 
-Trace2Skill is a framework for automatic skill adaptation and skill creation from agent execution traces. Instead of updating skills sequentially from individual trajectories, Trace2Skill analyzes a pool of traces in parallel, proposes trajectory-local patches with multiple analysts, and hierarchically consolidates them into a unified, conflict-free skill directory. The paper studies two evolution modes: `skill deepening` from an existing human-written skill, and `skill creation from scratch` from a weak initial draft.
+In this project, we provide the official code and released spreadsheet skills for Trace2Skill. Trace2Skill automatically adapts and creates agent skills from execution traces. Instead of updating skills sequentially from individual trajectories, it analyzes a pool of traces in parallel, proposes trajectory-local patches with multiple analysts, and hierarchically consolidates them into a unified, conflict-free skill directory.
 
-## News
+The paper studies two evolution modes: <b>skill deepening</b> from an existing human-written skill, and <b>skill creation from scratch</b> from a weak initial draft. In addition to spreadsheet tasks, the paper also studies math reasoning and visual question answering.
 
-- `[2026/04/15]` Repository released.
-- `[2026/03/26]` Paper released as a work in progress.
+<p align="center">
+  <b>Trace2Skill pipeline:</b> trajectory generation -> parallel multi-agent patch proposal -> conflict-free patch consolidation
+</p>
 
-## Overview
+</div>
 
-Trace2Skill follows the three-stage pipeline described in the paper:
+## 1. Setup and Installation
 
-1. `Trajectory Generation`
-   A frozen agent rolls out on a task pool and produces successful and failed trajectories.
-2. `Parallel Multi-Agent Patch Proposal`
-   Success analysts and error analysts process traces independently and propose skill patches.
-3. `Conflict-Free Patch Consolidation`
-   Proposed patches are merged hierarchically with programmatic conflict prevention and format validation.
+Clone this repository and install the lightweight runtime dependencies:
 
-The paper shows that this holistic, parallel consolidation strategy yields more transferable skills than both sequential online editing and retrieval-based experience-memory baselines. In addition to spreadsheet tasks, the paper also studies math reasoning and visual question answering.
+```bash
+git clone https://github.com/Qwen-Applications/Trace2Skill.git
+cd Trace2Skill
+python -m pip install openai tqdm openpyxl requests diskcache
+```
 
-## Released Skills
+The runners use OpenAI-compatible chat APIs by default. Set the API credentials for your provider:
 
-We release the top-performing spreadsheet skills referenced in the paper under `released_skills/`.
-These released artifacts emphasize the core Trace2Skill setting in the paper: an LLM analyzes and consolidates lessons from **its own execution traces** to either **self-deepen** an existing skill or **self-create** a new skill from scratch.
+```bash
+export OPENAI_API_KEY=<your_api_key>
+export OPENAI_BASE_URL=<optional_openai_compatible_endpoint>
+```
 
-- `trace2skill-xlsx-35B-combined`
-  A **35B self-deepen** skill: the model deepens the existing `xlsx` skill using its **own 35B traces** in the combined analyst setting.
-- `xlsx-35B`
-  A **35B self-create** skill: the model creates a spreadsheet skill from scratch using its **own 35B traces** in the error setting.
-- `trace2skill-xlsx-122B-combined`
-  A **122B self-deepen** skill: the model deepens the existing `xlsx` skill using its **own 122B traces** in the combined analyst setting.
-- `xlsx-122B`
-  A **122B self-create** skill: the model creates a spreadsheet skill from scratch using its **own 122B traces** in the error setting.
+For local OpenAI-compatible serving, pass `--api-key EMPTY` and `--base-url http://localhost:8000/v1` to the analysis or skill-evolution entrypoints.
+
+## 2. Data and Released Skills
+
+Prepare a SpreadsheetBench dataset directory or JSONL file and pass it with `--data_path` when running evaluation. The benchmark runner uses the preloaded spreadsheet skills under `spreadsheet_agent/skills/`.
+
+We release the top-performing spreadsheet skills referenced in the paper under `released_skills/`:
+
+| Skill | Setting | Source traces | Location |
+|-------|---------|---------------|----------|
+| `trace2skill-xlsx-35B-combined` | Self-deepen | 35B combined success/error traces | `released_skills/trace2skill-xlsx-35B-combined/` |
+| `xlsx-35B` | Self-create | 35B error traces | `released_skills/xlsx-35B/` |
+| `trace2skill-xlsx-122B-combined` | Self-deepen | 122B combined success/error traces | `released_skills/trace2skill-xlsx-122B-combined/` |
+| `xlsx-122B` | Self-create | 122B error traces | `released_skills/xlsx-122B/` |
 
 The runtime skill tree in `spreadsheet_agent/skills/` includes the released `xlsx-35B` and `xlsx-122B` variants directly. The full paper release set is preserved separately in `released_skills/`.
 
-## What Is Included
+## 3. Running and Skill Evolution
 
-- `run_spreadsheetbench.py`
-  Runs SpreadsheetBench with the preloaded-skill spreadsheet-agent setup used in this release.
-- `evaluate_with_official.py`
-  Evaluates SpreadsheetBench outputs with the official scorer when available, and falls back to the bundled compatible scorer otherwise.
-- `analyze_results.py`
-  Matches evaluation outputs with trajectory logs for failure triage.
-- `analysis/run_error_analysis.py`
-  Runs the paper’s agentic error analyst and writes pass-gated parsed records to `parsed_error_records.json`.
-- `analysis/run_error_analysis_llm.py`
-  Runs the single-call LLM error-analysis baseline and writes `parsed_error_records.json`.
-- `analysis/run_success_analysis_llm.py`
-  Runs the single-call success analyst and writes `parsed_success_records.json`.
-- `spreadsheet_agent/skills/`
-  Includes the spreadsheet-agent skill tree used by the released benchmark setup.
-- `released_skills/`
-  Includes the four released paper skills listed above.
-- `skill_evolver/`
-  Includes the public parallel skill-evolution entrypoints and their direct support modules for Trace2Skill patch proposal and consolidation.
+From the repository root, run the SpreadsheetBench agent, evaluate outputs, analyze trajectories, and evolve skills with the following entrypoints:
 
-## Main Entry Points
+| Workflow | Command | Output |
+|----------|---------|--------|
+| Run SpreadsheetBench | `python run_spreadsheetbench.py --data_path <dataset> --model <model>` | Spreadsheet outputs and optional trajectory logs |
+| Evaluate outputs | `python evaluate_with_official.py --data_path <dataset> --output_dir <outputs>` | Official-compatible evaluation results |
+| Match results and logs | `python analyze_results.py --help` | Failure triage records |
+| Agentic error analysis | `python analysis/run_error_analysis.py --help` | `parsed_error_records.json` |
+| Single-call error analysis | `python analysis/run_error_analysis_llm.py --help` | `parsed_error_records.json` |
+| Single-call success analysis | `python analysis/run_success_analysis_llm.py --help` | `parsed_success_records.json` |
+| Parallel error-driven skill evolution | `python -m skill_evolver.run_parallel_skill_evolution --help` | Updated skill directory |
+| Parallel combined skill evolution | `python -m skill_evolver.run_parallel_combined_skill_evolution --help` | Updated skill directory |
+
+Example benchmark run:
 
 ```bash
-python run_spreadsheetbench.py --data_path <dataset> --model <model>
-python evaluate_with_official.py --help
-python analyze_results.py --help
-python analysis/run_error_analysis.py --help
-python analysis/run_error_analysis_llm.py --help
-python analysis/run_success_analysis_llm.py --help
-python -m skill_evolver.run_parallel_skill_evolution --help
-python -m skill_evolver.run_parallel_combined_skill_evolution --help
+python run_spreadsheetbench.py \
+  --data_path <dataset> \
+  --model <model> \
+  --output_dir outputs/spreadsheetbench \
+  --log_dir outputs/logs
 ```
 
-Analysis scripts now emit parsed JSON automatically:
+Example parallel skill evolution from parsed error records:
 
-- `analysis/run_error_analysis.py` and `analysis/run_error_analysis_llm.py` write `parsed_error_records.json`
-- `analysis/run_success_analysis_llm.py` writes `parsed_success_records.json`
-- the skill-evolver entrypoints accept either those JSON files or the analysis output directories directly
+```bash
+python -m skill_evolver.run_parallel_skill_evolution \
+  --input-json <analysis_output_or_parsed_error_records.json> \
+  --skill-dir spreadsheet_agent/skills/xlsx/ \
+  --model <model> \
+  --max-workers 4 \
+  --save-intermediates
+```
 
-## Repository Scope
+The skill-evolver entrypoints accept either parsed JSON files or the corresponding analysis output directories directly.
 
-- The SpreadsheetBench runner in this repository supports the preloaded-skill spreadsheet-agent flow used in the released spreadsheet experiments.
-- The paper release skill artifacts are included for inspection and reuse, not all of them are loaded simultaneously by the benchmark runner.
-
-## Directory Sketch
+## Repository Structure
 
 ```text
-trace2skill/
-├── analysis/
-├── released_skills/
-├── skill_evolver/
-├── spreadsheet_agent/
-├── src/react_agent/
-├── evaluate_with_official.py
-├── analyze_results.py
-├── analysis/run_error_analysis.py
-└── run_spreadsheetbench.py
+Trace2Skill/
+├── README.md
+├── analysis/                           # Error/success trajectory analysis scripts and prompts
+│   ├── run_error_analysis.py           # Agentic error analyst
+│   ├── run_error_analysis_llm.py       # Single-call error analyst
+│   └── run_success_analysis_llm.py     # Single-call success analyst
+├── released_skills/                    # Released paper skill artifacts
+│   ├── trace2skill-xlsx-35B-combined/
+│   ├── trace2skill-xlsx-122B-combined/
+│   ├── xlsx-35B/
+│   └── xlsx-122B/
+├── skill_evolver/                      # Parallel Trace2Skill patch proposal and consolidation
+│   ├── run_parallel_skill_evolution.py
+│   └── run_parallel_combined_skill_evolution.py
+├── spreadsheet_agent/                  # SpreadsheetBench agent and runtime skills
+│   ├── agents/
+│   ├── skills/
+│   └── tools/
+├── src/react_agent/                    # ReAct agent and OpenAI-compatible model clients
+├── run_spreadsheetbench.py             # SpreadsheetBench runner
+├── evaluate_with_official.py           # Official-compatible scorer wrapper
+├── analyze_results.py                  # Result/log matching and triage
+└── spreadsheetbench_support.py         # Shared SpreadsheetBench utilities
 ```
 
-## Notes
+Core implementations:
 
-This repository focuses on the spreadsheet setting and released skills discussed in the paper, while keeping the core Trace2Skill evolution pipeline runnable.
+- `skill_evolver/parallel_evolving_agent.py`
+- `skill_evolver/parallel_success_evolving_agent.py`
+- `skill_evolver/skill_evolving_agent.py`
+- `analysis/error_analysis_agent.py`
+- `spreadsheet_agent/agents/cli_skill_preloaded_agent.py`
+
+## Acknowledgements
+
+This repository focuses on the spreadsheet setting and released skills discussed in the paper, while keeping the core Trace2Skill evolution pipeline runnable. We thank the developers and communities behind the tools used by this release:
+
+- [Qwen](https://github.com/QwenLM) and the Qwen application ecosystem
+- [SpreadsheetBench](https://arxiv.org/abs/2406.14991) for spreadsheet-agent evaluation
+- [openpyxl](https://openpyxl.readthedocs.io/) for spreadsheet manipulation support
+
+## License
+
+This project is released under the [Apache License 2.0](https://opensource.org/licenses/Apache-2.0). Released skill artifacts may include their own license files where noted.
 
 ## Citation
 
-If you use this repository or the released skills, please cite:
+If you find our work useful in your research, please consider citing our paper:
 
 ```bibtex
 @misc{ni2026trace2skilldistilltrajectorylocallessons,
-      title={Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills}, 
+      title={Trace2Skill: Distill Trajectory-Local Lessons into Transferable Agent Skills},
       author={Jingwei Ni and Yihao Liu and Xinpeng Liu and Yutao Sun and Mengyu Zhou and Pengyu Cheng and Dexin Wang and Erchao Zhao and Xiaoxi Jiang and Guanjun Jiang},
       year={2026},
       eprint={2603.25158},
       archivePrefix={arXiv},
       primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2603.25158}, 
+      url={https://arxiv.org/abs/2603.25158},
 }
 ```
