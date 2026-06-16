@@ -18,7 +18,8 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-
+from dotenv import load_dotenv
+load_dotenv()
 from tqdm import tqdm
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -29,7 +30,11 @@ from spreadsheet_agent import CLISkillPreloadedAgent, SpreadsheetBenchRunner
 
 ALLOWED_SKILL_DIR_NAMES = {"xlsx", "xlsx-122B", "xlsx-35B"}
 
-
+'''
+   1.参数解析与配置
+      - 收集命令参数，例如数据集路径（--data_path）、输出目录（--output_dir）、使用的模型（--model）、并行工作线程数（--workers）以及日志格式等。
+      - 重点校验加载的技能目录是否在允许的白名单内。
+'''
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the SpreadsheetBench skill-preloaded agent."
@@ -191,13 +196,11 @@ def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> 
         parser.error(f"skills directory not found: {resolved_skills_dir}")
     _validate_allowed_skills(resolved_skills_dir)
 
-
 def _resolve_skills_dir(skills_dir: str) -> Path:
     path = Path(skills_dir).resolve()
     if (path / "SKILL.md").is_file():
         path = path.parent
     return path
-
 
 def _validate_allowed_skills(skills_dir: Path) -> None:
     discovered = {
@@ -215,7 +218,6 @@ def _validate_allowed_skills(skills_dir: Path) -> None:
     if missing:
         raise ValueError(f"Missing required spreadsheet skills: {missing}")
 
-
 def _parse_generation_config(generation_config: str | None) -> dict:
     if not generation_config:
         return {}
@@ -228,7 +230,6 @@ def _parse_generation_config(generation_config: str | None) -> dict:
         raise ValueError("--generation_config must be a JSON object or a path to a JSON object file")
     return parsed
 
-
 def _build_generation_config(args) -> dict:
     generation_config = _parse_generation_config(args.generation_config)
     run_seed = getattr(args, "run_seed", None)
@@ -236,7 +237,9 @@ def _build_generation_config(args) -> dict:
         generation_config["seed"] = run_seed
     return generation_config
 
-
+'''
+   2.客户端与Agent初始化
+'''
 def _build_client(args):
     generation_config = _build_generation_config(args)
     run_seed = generation_config.get("seed")
@@ -256,7 +259,6 @@ def _build_client(args):
         use_cache=use_cache,
     )
 
-
 def _parse_seed_csv(seed_csv: str) -> list[int]:
     seeds: list[int] = []
     for token in seed_csv.split(","):
@@ -268,7 +270,6 @@ def _parse_seed_csv(seed_csv: str) -> list[int]:
         raise ValueError("No seeds provided in --seeds")
     return seeds
 
-
 def _resolve_run_seeds(args) -> list[int | None]:
     if args.seeds:
         return _parse_seed_csv(args.seeds)
@@ -276,7 +277,6 @@ def _resolve_run_seeds(args) -> list[int | None]:
         rng = random.SystemRandom()
         return rng.sample(range(1, 2_147_483_647), args.num_random_seeds)
     return [None]
-
 
 def _prepare_instances(instances: list, shuffle_seed: int | None, sample: int | None) -> list:
     if shuffle_seed is not None:
@@ -287,7 +287,6 @@ def _prepare_instances(instances: list, shuffle_seed: int | None, sample: int | 
         instances = instances[:sample]
     return instances
 
-
 def _results_file_for_seed(base_results_file: str | None, seed: int) -> str | None:
     if base_results_file is None:
         return None
@@ -295,7 +294,6 @@ def _results_file_for_seed(base_results_file: str | None, seed: int) -> str | No
     if not ext:
         ext = ".json"
     return f"{root}_seed_{seed}{ext}"
-
 
 def create_agent(args):
     client = _build_client(args)
@@ -311,7 +309,6 @@ def create_agent(args):
         agent_kwargs["log_dir"] = args.log_dir
         agent_kwargs["log_format"] = args.log_format
     return CLISkillPreloadedAgent(**agent_kwargs)
-
 
 def instance_has_outputs(instance, output_dir: str, data_path: str) -> bool:
     instance_id = str(instance.id)
@@ -359,7 +356,9 @@ def instance_has_outputs(instance, output_dir: str, data_path: str) -> bool:
             return False
     return True
 
-
+'''
+   3.任务过滤与断点续跑
+'''
 def filter_instances(instances, args, data_path: str):
     if args.instance_ids:
         requested_ids = {item.strip() for item in args.instance_ids.split(",")}
@@ -377,7 +376,6 @@ def filter_instances(instances, args, data_path: str):
         skipped = original_count - len(instances)
         print(f"Skipping {skipped} instances with existing outputs, {len(instances)} remaining")
     return instances
-
 
 def _serialize_results(args, agent_name: str, instances: list, results: list, extra: dict | None = None) -> dict:
     success_count = sum(1 for result in results if result.success)
@@ -414,7 +412,11 @@ def _serialize_results(args, agent_name: str, instances: list, results: list, ex
         payload.update(extra)
     return payload
 
-
+'''
+   4.执行模式：
+      串行执行
+      并行执行:利用ThreadPoolExecutor 创建多线程并发完成评测。带有集成的tqdm 进度条以显示执行进度和实时成功数量。
+'''
 def run_sequential(args):
     if args.working_dir:
         working_dir = args.working_dir
@@ -469,7 +471,6 @@ def run_sequential(args):
         json.dump(payload, fh, indent=2)
     print(f"\nResults saved to: {results_file}")
 
-
 def run_worker(worker_id, instances, args, working_dir, progress_callback=None):
     agent = create_agent(args)
     runner = SpreadsheetBenchRunner(
@@ -501,7 +502,6 @@ def run_worker(worker_id, instances, args, working_dir, progress_callback=None):
             if progress_callback:
                 progress_callback(instance.id, False)
     return results
-
 
 def run_parallel(args):
     print(f"Running in parallel mode with {args.workers} workers")
@@ -574,7 +574,11 @@ def run_parallel(args):
         json.dump(payload, fh, indent=2)
     print(f"\nResults saved to: {results_file}")
 
-
+'''
+   5.多轮随机种子运行
+      - 支持通过 --repeat 参数指定多次运行，每次使用不同的随机种子。这对于评估模型在不同随机条件下的稳定性和性能非常有用。
+      - 结果文件命名会自动包含种子信息，便于区分和分析不同运行的结果。
+'''
 def main():
     parser = build_arg_parser()
     args = parser.parse_args()
@@ -618,7 +622,6 @@ def main():
             run_parallel(run_args)
         else:
             run_sequential(run_args)
-
 
 if __name__ == "__main__":
     main()

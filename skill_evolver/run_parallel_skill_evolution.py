@@ -39,6 +39,9 @@ from src.react_agent.models import ApiChatClient, OpenAIClient
 from skill_evolver.skill_evolving_agent import PROMPT_VARIANTS, QUICK_VALIDATE_SCRIPT
 from skill_evolver.parallel_evolving_agent import ParallelSkillEvolver
 
+from dotenv import load_dotenv
+load_dotenv()
+
 log = logging.getLogger(__name__)
 
 

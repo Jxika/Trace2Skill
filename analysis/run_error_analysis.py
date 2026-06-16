@@ -18,6 +18,9 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from tqdm import tqdm
 
 ROOT_DIR = Path(__file__).resolve().parent.parent

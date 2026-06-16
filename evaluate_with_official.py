@@ -29,13 +29,30 @@ try:
 except ImportError:
     official_compare_workbooks = None
 
+'''
+   是Trace2Skill 项目中用于自动化评估 Agent 执行结果脚本。它的主要作用是将 Agent 输出的表格与SpreadsheetBench 数据集中的标准答案
+   （Ground Truth）进行自动化比对，并生成测评报告。
+'''
 
+'''
+   1.双模式比对机制
+   脚本设计了兼容与降级处理：
+     · 优先尝试导入 SpreadsheetBench 官方的比对逻辑，以保证论文评测对齐。
+     · 如果本地缺少官方测评包，则自动回退使用项目中自带的本地比对函数
+'''
 def compare_workbooks(gt_path, output_path, instruction_type, answer_position):
     if official_compare_workbooks is not None:
         return official_compare_workbooks(gt_path, output_path, instruction_type, answer_position)
     return local_compare_workbooks(gt_path, output_path, answer_position)
 
-
+'''
+   2.核心评估流程
+   遍历指定的数据集，执行以下步骤：
+      · 文件匹配：自动在输出目录中巽宅Agent 生成的 _output.xlsx,并在数据目录寻找对应的标准答案字典（_answer.xlsx 或 _golden.xlsx）。
+      · 计算两类得分：
+         · Soft Score(软得分)：反映单个测试用例中答对测试点的比例（0.0 ~ 1.0）
+         · Hard Score(硬得分)：只有当该任务所有测试点 100% 对齐时，才记为 1（完全正确），否则为0。
+'''
 def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
     """
     Evaluate outputs against ground truth using official SpreadsheetBench logic.
@@ -262,7 +279,13 @@ def main():
              "subdirectories and evaluates each independently (default: 1).",
     )
     args = parser.parse_args()
+    
+    '''
+    默认情况下，repeat=1，脚本只测评指定的单个output_dir 目录。
+    当你在运行命令时传入 --repeat N 时，它的作用如下：
+       1.自动扫描子集：脚本不再直接读取 output_dir ，而是去扫描该目录下命名格式为 seed_* 的子文件夹。
 
+    '''
     if args.repeat > 1:
         _run_repeat_evaluation(args)
         return
@@ -312,7 +335,12 @@ def _print_summary(summary: dict, label: str = "") -> None:
 
     print("=" * 60)
 
-
+'''
+多轮/随机数聚合统计(_run_repeat_evaluation)
+为了衡量 Agent 表现的稳定性，脚本支持通过 --repeat 参数统计多次不同随机种子（Seed）的并集结果：
+    · pass@any:在这N次运行中，只要有一次跑通了该测试例，就算通过。
+    · pass@all:在这N次运行中，该测试每一次都必须跑通，衡量稳定性。
+'''
 def _run_repeat_evaluation(args) -> None:
     """Evaluate all seed_* subdirectories under args.output_dir."""
     seed_dirs = sorted(
@@ -376,6 +404,8 @@ def _print_aggregate_summary(all_seed_results: dict) -> None:
           f"({passed_all/total_instances*100:.1f}%)" if total_instances else "N/A")
     print("=" * 60)
 
-
+'''
+   最终在终端中打印包全局通过率、分类准确率等信息的统计报告，并将每一题成功与否的明细保存到 eval_official_results.json 中。
+'''
 if __name__ == "__main__":
     main()

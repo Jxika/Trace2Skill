@@ -1,0 +1,9 @@
+.venv
+data
+__pycache__
+outputs
+analysis_output
+spreadsheet_agent/skills
+launch.json
+.env
+运行此项目.md

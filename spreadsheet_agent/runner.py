@@ -16,7 +16,7 @@ from typing import Iterator
 
 from .agents.base import BaseSpreadsheetAgent, AgentContext
 
-
+#单条测试用例的元数据（ID，自然语言指令、表格路径等）
 @dataclass
 class BenchmarkInstance:
     """A single benchmark instance."""
@@ -27,7 +27,7 @@ class BenchmarkInstance:
     answer_position: str = ""
     metadata: dict = field(default_factory=dict)
 
-
+#TestCaseResult / InstanceResult 记录单个文件或单个实例的运行结果（成功状态、错误信息、对话轮数等）
 @dataclass
 class TestCaseResult:
     """Result for a single test case."""
@@ -38,7 +38,6 @@ class TestCaseResult:
     turns: int = 0
     error: str = ""
 
-
 @dataclass
 class InstanceResult:
     """Result for a benchmark instance (may have multiple test cases)."""
@@ -48,7 +47,7 @@ class InstanceResult:
     test_cases: list[TestCaseResult] = field(default_factory=list)
     error: str = ""
 
-
+#全局运行结果汇总（包含总用例数、成功率等统计信息）。
 @dataclass
 class BenchmarkResult:
     """Overall benchmark results."""
@@ -82,7 +81,12 @@ def get_spreadsheet_content(file_path: str, max_rows: int = 5) -> str:
     except Exception as e:
         return f"[Could not read spreadsheet: {e}]"
 
+'''
+是Trace2Skill项目中测试执行的核心引擎。它独立于具体的Agent实现，主要负责加载 SpreadsheetBench数据集、调度Agent完成
+具体的电子表格任务，并汇总和保存评估结果。
 
+
+'''
 class SpreadsheetBenchRunner:
     """
     Runner for executing agents on SpreadsheetBench.
@@ -94,13 +98,7 @@ class SpreadsheetBenchRunner:
     - Collecting and saving results
     """
 
-    def __init__(
-        self,
-        agent: BaseSpreadsheetAgent,
-        data_path: str,
-        output_dir: str = "outputs/spreadsheetbench",
-        working_dir: str | None = None,
-    ):
+    def __init__(self,agent: BaseSpreadsheetAgent,data_path: str,output_dir: str = "outputs/spreadsheetbench",working_dir: str | None = None,):
         """
         Initialize the runner.
 
@@ -197,7 +195,7 @@ class SpreadsheetBenchRunner:
                 return path
 
         return None
-
+    #识别各种约定的表格命名格式，从而准确定位待处理的起始Excel
     def _find_input_files(self, spreadsheet_dir: str) -> list[str]:
         """Find input files in the spreadsheet directory."""
         files = os.listdir(spreadsheet_dir)
@@ -273,13 +271,15 @@ class SpreadsheetBenchRunner:
                 result.success = False
 
         return result
-
-    def _run_test_case(
-        self,
-        instance: BenchmarkInstance,
-        spreadsheet_dir: str,
-        input_file: str,
-    ) -> TestCaseResult:
+    #执行单条测试
+    '''
+       · 为当前任务在一个工作目录中创建隔离的子文件夹。
+       · 将最初的输入表格复制为 input.xlsx,清空旧的 output.xlsx
+       · 读取表格前 5 行的内容作为字符串，用于 Agent 的上下文。
+       · 调用 self.agent.run(context) 启动大模型代理进行推理和代码执行。
+       · 执行完毕后，检查目标文件 output.xlsx 是否生成，生成则判定成功并拷贝到最终的输出目录。
+    '''
+    def _run_test_case(self,instance: BenchmarkInstance,spreadsheet_dir: str,input_file: str,) -> TestCaseResult:
         """Run a single test case."""
         input_path = os.path.join(spreadsheet_dir, input_file)
 
@@ -361,11 +361,7 @@ class SpreadsheetBenchRunner:
                 error=f"{e}\n{traceback.format_exc()}",
             )
 
-    def run(
-        self,
-        start_idx: int = 0,
-        end_idx: int | None = None,
-    ) -> BenchmarkResult:
+    def run(self,start_idx: int = 0,end_idx: int | None = None,) -> BenchmarkResult:
         """
         Run the benchmark.
 
@@ -432,12 +428,7 @@ class SpreadsheetBenchRunner:
             # Each task has its own subdirectory that is preserved
             pass
 
-    def run_and_save(
-        self,
-        results_file: str | None = None,
-        start_idx: int = 0,
-        end_idx: int | None = None,
-    ) -> BenchmarkResult:
+    def run_and_save(self,results_file: str | None = None,start_idx: int = 0,end_idx: int | None = None,) -> BenchmarkResult:
         """Run benchmark and save results to file."""
         result = self.run(start_idx=start_idx, end_idx=end_idx)
 

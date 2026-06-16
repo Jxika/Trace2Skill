@@ -5,6 +5,10 @@ Unlike CLISkillAgent which discovers skills and instructs the agent to read them
 on demand via bash, this agent reads all skill content at initialization and embeds
 it directly into the system prompt. The agent does not need to decide whether or
 when to read a skill file — the full guidance is already available in context.
+
+是Trace2Skill 项目中用于电子表格操作的一个智能体实现。
+功能：
+  - 在初始化时预先将所有技能的内容加载到系统提示词（System Prompt）中，而不是让大模型在运行时通过命令去读取技能文件。
 """
 
 import os
@@ -30,7 +34,9 @@ class SkillMetadata:
     description: str
     file_path: str
 
-
+'''
+寻找技能
+'''
 def extract_skill_metadata(skill_file: str) -> SkillMetadata | None:
     try:
         with open(skill_file, "r", encoding="utf-8") as handle:
@@ -197,7 +203,11 @@ Action:
     "arguments": {{"command": "# Any other command you deem appropriate"}}
 }}"""
 
-
+'''
+   -接受自然语言指令和包含电子表格内容的环境上下文。
+   -将具体的技能(Skill)文档直接内嵌大模型。
+   -通过提供一个bash命令工具，赋予模型编写python的能力。
+'''
 class CLISkillPreloadedAgent(BaseSpreadsheetAgent):
     """
     CLI agent with skill content pre-loaded in the system prompt.
@@ -215,17 +225,8 @@ class CLISkillPreloadedAgent(BaseSpreadsheetAgent):
     - Content embedded in system prompt, no runtime file reads needed
     """
 
-    def __init__(
-        self,
-        client,
-        skills_dir: str | None = None,
-        max_turns: int = 20,
-        temperature: float = 0.0,
-        verbose: bool = True,
-        timeout: int = 120,
-        log_dir: str | None = None,
-        log_format: str = "markdown",
-    ):
+    def __init__(self,client,skills_dir: str | None = None,max_turns: int = 20,temperature: float = 0.0,
+        verbose: bool = True,timeout: int = 120,log_dir: str | None = None,log_format: str = "markdown",):
         super().__init__(client, max_turns, temperature, verbose, log_dir, log_format)
         self.timeout = timeout
         self.skills_dir = os.path.abspath(skills_dir if skills_dir is not None else SKILLS_DIR)
@@ -269,7 +270,9 @@ class CLISkillPreloadedAgent(BaseSpreadsheetAgent):
         return [
             create_bash_tool(working_dir, timeout=self.timeout),
         ]
-
+    '''
+    向LLM发送具体的任务请求，指明工具目录（working_directory）、原电子表格的位置
+    '''
     def build_task_prompt(self, context) -> str:
         """Build task prompt with absolute paths.
 
