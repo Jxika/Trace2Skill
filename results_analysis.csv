@@ -1,0 +1,11 @@
+instance_id,passed,soft_score,hard_score,error_message,log_file,instruction
+13-1,False,0.0,0,Output file not found,,
+17-35,False,0.0,0,"Value mismatch at I6: expected '2023-03-24 00:00:00', got 'None'",,
+22-47,False,0.0,0,Output file not found,,
+23-24,False,0.0,0,Output file not found,,
+24-23,False,0.0,0,Output file not found,,
+262-17,False,0.0,0,Output file not found,,
+28-7,False,0.0,0,Output file not found,,
+41-47,False,0.0,0,Output file not found,,
+51-12,False,0.0,0,Output file not found,,
+60-7,True,1.0,1,,,

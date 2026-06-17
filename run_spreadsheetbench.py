@@ -39,153 +39,79 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the SpreadsheetBench skill-preloaded agent."
     )
-    parser.add_argument(
-        "--data_path",
-        type=str,
-        required=True,
-        help="Path to SpreadsheetBench data directory or JSONL file",
-    )
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        default="outputs/spreadsheetbench",
-        help="Directory to save output spreadsheets",
-    )
-    parser.add_argument(
-        "--working_dir",
-        type=str,
-        default=None,
-        help="Working directory for agent execution",
-    )
-    parser.add_argument(
-        "--skills_dir",
-        type=str,
-        default=str(Path(__file__).resolve().parent / "spreadsheet_agent" / "skills"),
-        help="Path to spreadsheet skills root directory",
-    )
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="gpt-4o",
-        help="Model to use",
-    )
-    parser.add_argument(
-        "--llm_client",
-        type=str,
-        default="openai",
-        choices=["openai", "api_chat"],
-        help="LLM client backend to use",
-    )
-    parser.add_argument(
-        "--api_chat_config",
-        type=str,
-        default="config/llm_api.json",
-        help="Path to ApiChat config JSON when --llm_client=api_chat",
-    )
-    parser.add_argument(
-        "--max_turns",
-        type=int,
-        default=None,
-        help="Maximum turns per task",
-    )
-    parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.0,
-        help="Temperature for generation",
-    )
-    parser.add_argument(
-        "--generation_config",
-        type=str,
-        default=None,
-        help="Generation config as JSON string or path to JSON file",
-    )
-    parser.add_argument(
-        "--num_random_seeds",
-        type=int,
-        default=1,
-        help="Number of runs with randomly generated seeds",
-    )
-    parser.add_argument(
-        "--seeds",
-        type=str,
-        default=None,
-        help="Comma-separated explicit seeds",
-    )
-    parser.add_argument(
-        "--start_idx",
-        type=int,
-        default=0,
-        help="Start index for benchmark instances",
-    )
-    parser.add_argument(
-        "--end_idx",
-        type=int,
-        default=None,
-        help="End index for benchmark instances (exclusive)",
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Print verbose output",
-    )
-    parser.add_argument(
-        "--results_file",
-        type=str,
-        default=None,
-        help="Path to save results JSON",
-    )
-    parser.add_argument(
-        "--log_dir",
-        type=str,
-        default=None,
-        help="Directory to save chat history logs",
-    )
-    parser.add_argument(
-        "--log_format",
-        type=str,
-        default="markdown",
-        choices=["markdown", "jsonl"],
-        help="Format for chat history logs",
-    )
-    parser.add_argument(
-        "--workers",
-        type=int,
-        default=1,
-        help="Number of parallel workers",
-    )
-    parser.add_argument(
-        "--instance_ids",
-        type=str,
-        default=None,
-        help="Comma-separated list of instance IDs to run",
-    )
-    parser.add_argument(
-        "--missing_only",
-        action="store_true",
-        help="Only run instances that do not have complete output files",
-    )
-    parser.add_argument(
-        "--repeat",
-        type=int,
-        default=1,
-        help="Repeat the benchmark with different random seeds",
-    )
-    parser.add_argument(
-        "--shuffle_seed",
-        type=int,
-        default=None,
-        help="Shuffle instances with this fixed seed",
-    )
-    parser.add_argument(
-        "--sample",
-        type=int,
-        default=None,
-        help="After shuffling, take only the first N instances",
-    )
+    parser.add_argument("--data_path",type=str,required=True,help="Path to SpreadsheetBench data directory or JSONL file",)
+    
+    #保存Agent生成的输出 EXcel的目录
+    parser.add_argument("--output_dir",type=str,default="outputs/spreadsheetbench",help="Directory to save output spreadsheets",)
+
+    #None（自动创建临时目录）Agent执行时的临时工作目录；多seed运行时会在其下创建seed_{N}子目录。
+    parser.add_argument("--working_dir",type=str, default=None,help="Working directory for agent execution",)
+   
+    #技能根目录，需包含xlsx、xlsx-122B、xlsx-35B等白名单技能。若指向单个技能目录（含SKILL.md）,会自动上溯到父目录。
+    parser.add_argument("--skills_dir",type=str,default=str(Path(__file__).resolve().parent / "spreadsheet_agent" / "skills"),help="Path to spreadsheet skills root directory",)
+    
+    #使用的LLM模型名。
+    parser.add_argument("--model",type=str,default="gpt-4o",help="Model to use",)
+   
+    #LLM后端；openai用OpenAIClient(需OPENAI_API_KEY);api_chat用ApiChatClient。
+    parser.add_argument("--llm_client",type=str,default="openai",choices=["openai", "api_chat"],help="LLM client backend to use",)
+   
+    #当 --llm_client=api_chat时。ApiChat的配置JSON路径。
+    parser.add_argument("--api_chat_config",type=str,default="config/llm_api.json",help="Path to ApiChat config JSON when --llm_client=api_chat",)
+
+    #每个任务的最大对话轮数；不设则用Agent默认值。
+    parser.add_argument("--max_turns",type=int,default=None,help="Maximum turns per task",)
+    
+    #生成温度，传给Agent。
+    parser.add_argument("--temperature",type=float,default=0.0,help="Temperature for generation",)
+    
+    #额外生成参数，JSON字符串或JSON文件路径；多seed运行时会注入seed字段。
+    parser.add_argument("--generation_config",type=str,default=None,help="Generation config as JSON string or path to JSON file",)
+    
+    #随机生成N个seed各跑一遍；与--repeat>1 互斥。
+    parser.add_argument("--num_random_seeds",type=int,default=1,help="Number of runs with randomly generated seeds",)
+    
+    #None 逗号分隔的显式 seed列表（如 42,123,456）
+    parser.add_argument("--seeds",type=str,default=None,help="Comma-separated explicit seeds",)
+    
+    #从数据集中第几个实例开始(含)。
+    parser.add_argument("--start_idx",type=int,default=0,help="Start index for benchmark instances",)
+    
+    #None(到最后) 结束索引(不含)，与--start_idx 配合做切片。
+    parser.add_argument("--end_idx",type=int,default=None,help="End index for benchmark instances (exclusive)",)
+    
+    #开启Agent详细输出。
+    parser.add_argument("--verbose",action="store_true",help="Print verbose output",)
+
+    #None（默认{output_dir}/results.json）汇总结果JSON的保存路径。
+    parser.add_argument("--results_file",type=str,default=None,help="Path to save results JSON",)
+    
+    #None 保存Agent对话历史的目录；多种子时在子目录seed_{N}下。
+    parser.add_argument("--log_dir",type=str,default=None,help="Directory to save chat history logs",)
+    
+    #对话日志格式；markdown或jsonl。
+    parser.add_argument("--log_format",type=str,default="markdown",choices=["markdown", "jsonl"],help="Format for chat history logs",)
+    
+    #并行worker数；> 1 时走 run_parallel(ThreadPoolExecutor+tqdm),否则走 run_sequential。实际worker数为min(workers,实例数)。
+    parser.add_argument("--workers",type=int,default=1,help="Number of parallel workers",)
+    
+    #None 逗号分隔的实例ID列表，只跑指定题目（如13-1）
+    parser.add_argument("--instance_ids",type=str,default=None,help="Comma-separated list of instance IDs to run",)
+    
+    #断点续跑：跳过在 --output_dir 中已有完整输出文件的实例
+    parser.add_argument("--missing_only",action="store_true",help="Only run instances that do not have complete output files",)
+    
+    #重复跑N次；若未指定--seeds，会把num_random_seeds 设为 repeat。
+    parser.add_argument("--repeat",type=int,default=1,help="Repeat the benchmark with different random seeds",)
+    
+    #用固定随机种子打乱实例顺序，便于可复现的随机抽样
+    parser.add_argument("--shuffle_seed",type=int,default=None,help="Shuffle instances with this fixed seed",)
+    
+    #None 打乱后只取前 N 个实例。
+    parser.add_argument("--sample",type=int,default=None,help="After shuffling, take only the first N instances",)
     return parser
 
-
+#启动时的参数合法性
 def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
     if args.repeat > 1 and args.num_random_seeds > 1:
         parser.error("--repeat and --num_random_seeds > 1 are mutually exclusive")
@@ -196,12 +122,14 @@ def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> 
         parser.error(f"skills directory not found: {resolved_skills_dir}")
     _validate_allowed_skills(resolved_skills_dir)
 
+#把技能路径规范化为技能根目录
 def _resolve_skills_dir(skills_dir: str) -> Path:
     path = Path(skills_dir).resolve()
     if (path / "SKILL.md").is_file():
         path = path.parent
     return path
 
+#扫描skills_dir 下所有含 SKILL.md 的子目录。
 def _validate_allowed_skills(skills_dir: Path) -> None:
     discovered = {
         child.name
@@ -217,7 +145,7 @@ def _validate_allowed_skills(skills_dir: Path) -> None:
     missing = sorted(ALLOWED_SKILL_DIR_NAMES - discovered)
     if missing:
         raise ValueError(f"Missing required spreadsheet skills: {missing}")
-
+#生成配置与LLM客户端，解析--generation_config
 def _parse_generation_config(generation_config: str | None) -> dict:
     if not generation_config:
         return {}
@@ -230,6 +158,7 @@ def _parse_generation_config(generation_config: str | None) -> dict:
         raise ValueError("--generation_config must be a JSON object or a path to a JSON object file")
     return parsed
 
+#在 _parse_generation_config 基础上，若当前运行有 args.run_seed,则写入 genration_config["seed"],供LLM客户端使用。
 def _build_generation_config(args) -> dict:
     generation_config = _parse_generation_config(args.generation_config)
     run_seed = getattr(args, "run_seed", None)
@@ -278,6 +207,11 @@ def _resolve_run_seeds(args) -> list[int | None]:
         return rng.sample(range(1, 2_147_483_647), args.num_random_seeds)
     return [None]
 
+#对实例列表做后处理
+'''
+  1.若指定 shuffle_seed,则用固定随机种子打乱实例顺序。
+  2.若指定 sample,则只取前 N 个实例。
+'''
 def _prepare_instances(instances: list, shuffle_seed: int | None, sample: int | None) -> list:
     if shuffle_seed is not None:
         rng = random.Random(shuffle_seed)
@@ -287,6 +221,7 @@ def _prepare_instances(instances: list, shuffle_seed: int | None, sample: int | 
         instances = instances[:sample]
     return instances
 
+#多种子运行时，给结果文件加后缀
 def _results_file_for_seed(base_results_file: str | None, seed: int) -> str | None:
     if base_results_file is None:
         return None
@@ -295,6 +230,7 @@ def _results_file_for_seed(base_results_file: str | None, seed: int) -> str | No
         ext = ".json"
     return f"{root}_seed_{seed}{ext}"
 
+#Agent创建
 def create_agent(args):
     client = _build_client(args)
     agent_kwargs = {
@@ -310,6 +246,14 @@ def create_agent(args):
         agent_kwargs["log_format"] = args.log_format
     return CLISkillPreloadedAgent(**agent_kwargs)
 
+#断点续跑与实例过滤
+#判断某题是否已经跑完，供 --missing_only 使用。
+'''
+  1.找输出目录:在 output_dir 下找 {spreadsheet_path} 或 {instance_id} 子目录。
+  2.找数据目录:在 data_path 下多种路径尝试定位原始 spreadsheet目录
+  3.找输入文件：优先 *_input.xlsx,其次 *_init.xlsx,再initial.xlsx/input.xlsx
+  4.检查输出：对每个输入文件，检查对应的 *_output.xlsx 是否存在。
+'''
 def instance_has_outputs(instance, output_dir: str, data_path: str) -> bool:
     instance_id = str(instance.id)
     spreadsheet_path = str(instance.spreadsheet_path)
@@ -377,6 +321,7 @@ def filter_instances(instances, args, data_path: str):
         print(f"Skipping {skipped} instances with existing outputs, {len(instances)} remaining")
     return instances
 
+#结果序列化
 def _serialize_results(args, agent_name: str, instances: list, results: list, extra: dict | None = None) -> dict:
     success_count = sum(1 for result in results if result.success)
     payload = {
@@ -471,6 +416,7 @@ def run_sequential(args):
         json.dump(payload, fh, indent=2)
     print(f"\nResults saved to: {results_file}")
 
+#单个线程负责一批实例
 def run_worker(worker_id, instances, args, working_dir, progress_callback=None):
     agent = create_agent(args)
     runner = SpreadsheetBenchRunner(
@@ -503,6 +449,7 @@ def run_worker(worker_id, instances, args, working_dir, progress_callback=None):
                 progress_callback(instance.id, False)
     return results
 
+#并行调度
 def run_parallel(args):
     print(f"Running in parallel mode with {args.workers} workers")
     agent = create_agent(args)

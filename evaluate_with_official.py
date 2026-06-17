@@ -38,7 +38,7 @@ except ImportError:
    1.双模式比对机制
    脚本设计了兼容与降级处理：
      · 优先尝试导入 SpreadsheetBench 官方的比对逻辑，以保证论文评测对齐。
-     · 如果本地缺少官方测评包，则自动回退使用项目中自带的本地比对函数
+     · 如果本地缺少官方测评包，则自动回退使用项目中自带的本地比对函数。
 '''
 def compare_workbooks(gt_path, output_path, instruction_type, answer_position):
     if official_compare_workbooks is not None:
@@ -76,6 +76,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
     # Track by instruction type (like official eval)
     type_results = defaultdict(lambda: {"soft": [], "hard": []})
 
+    #从 dataset.json 读取关键字段
     for instance in tqdm(dataset):
         instance_id = str(instance["id"])
         spreadsheet_path = str(instance.get("spreadsheet_path", instance_id))
@@ -87,7 +88,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
                 print(f"Warning: No answer_position for {instance_id}, skipping")
             continue
 
-        # Find spreadsheet directory (contains ground truth)
+        # Find spreadsheet directory (contains ground truth) 找到数据目录
         spreadsheet_dir = find_spreadsheet_dir(data_path, instance)
         if spreadsheet_dir is None:
             results.append({
@@ -98,7 +99,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
             })
             continue
 
-        # Find output directory for this instance
+        # Find output directory for this instance 找到输出目录
         output_instance_dir = find_output_dir(output_dir, instance)
 
         # Find all test cases (ground truth files)
@@ -120,6 +121,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
             # Try verified dataset format
             gt_files = sorted([f for f in all_files if f.endswith("_golden.xlsx")])
 
+        #找Ground Truth文件
         if not gt_files:
             # Try exact match for simple naming: golden.xlsx
             if "golden.xlsx" in all_files:
@@ -152,6 +154,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
             total_test_cases += 1
 
             # Use official SpreadsheetBench comparison function
+            #对每个(gt_path,output_path)调用compare_workbooks().
             try:
                 result, msg = compare_workbooks(
                     gt_path, output_path, instruction_type, answer_position
@@ -192,8 +195,8 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
             "test_cases": test_case_results,
             "passed_count": passed_count,
             "total_count": total_count,
-            "soft_score": soft_score,
-            "hard_score": hard_score,
+            "soft_score": soft_score,  #部分正确
+            "hard_score": hard_score,  #完全正确
         })
 
     # Calculate overall metrics
@@ -215,15 +218,15 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
         }
 
     summary = {
-        "total_instances": total_instances,
-        "fully_correct_instances": fully_correct,
-        "instance_accuracy": fully_correct / total_instances if total_instances > 0 else 0,
-        "total_test_cases": total_test_cases,
-        "passed_test_cases": passed_test_cases,
-        "test_case_accuracy": passed_test_cases / total_test_cases if total_test_cases > 0 else 0,
-        "avg_soft_score": avg_soft_score,
-        "avg_hard_score": avg_hard_score,
-        "by_instruction_type": type_metrics,
+        "total_instances": total_instances, #评测实例数
+        "fully_correct_instances": fully_correct, #hard_score=1的提数
+        "instance_accuracy": fully_correct / total_instances if total_instances > 0 else 0, #完全正确实例占比
+        "total_test_cases": total_test_cases, #全部test case总数
+        "passed_test_cases": passed_test_cases, #通过的 test case数
+        "test_case_accuracy": passed_test_cases / total_test_cases if total_test_cases > 0 else 0,#test case级别准确率
+        "avg_soft_score": avg_soft_score,#各题soft的平均
+        "avg_hard_score": avg_hard_score,#各题hard的平均
+        "by_instruction_type": type_metrics,#按题型分组统计
     }
 
     return {
@@ -233,48 +236,17 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Evaluate SpreadsheetBench outputs using official evaluation logic"
-    )
-    parser.add_argument(
-        "--data_path",
-        type=str,
-        required=True,
-        help="Path to SpreadsheetBench data directory",
-    )
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        required=True,
-        help="Directory containing agent outputs",
-    )
-    parser.add_argument(
-        "--results_file",
-        type=str,
-        default=None,
+    parser = argparse.ArgumentParser(description="Evaluate SpreadsheetBench outputs using official evaluation logic")
+    parser.add_argument("--data_path",type=str,required=True,help="Path to SpreadsheetBench data directory",)
+    parser.add_argument("--output_dir",type=str,required=True,help="Directory containing agent outputs",)
+    parser.add_argument("--results_file",type=str,default=None,
         help="Path to save evaluation results JSON (default: output_dir/eval_official_results.json)",
     )
-    parser.add_argument(
-        "--start_idx",
-        type=int,
-        default=0,
-        help="Start index for evaluation",
-    )
-    parser.add_argument(
-        "--end_idx",
-        type=int,
-        default=None,
-        help="End index for evaluation (exclusive)",
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Print detailed error messages",
-    )
-    parser.add_argument(
-        "--repeat",
-        type=int,
-        default=1,
+    parser.add_argument("--start_idx",type=int,default=0,help="Start index for evaluation",)
+    parser.add_argument("--end_idx",type=int,default=None,help="End index for evaluation (exclusive)",)
+    #在 evaluate_with_official.py 里是一个开关(action="store_true"),默认关闭。打开后会在终端多打印一些调试、诊断信息。
+    parser.add_argument("--verbose",action="store_true",help="Print detailed error messages",)
+    parser.add_argument("--repeat",type=int,default=1,
         help="Number of seed runs to evaluate. When > 1, scans output_dir for seed_*/ "
              "subdirectories and evaluates each independently (default: 1).",
     )
@@ -284,7 +256,12 @@ def main():
     默认情况下，repeat=1，脚本只测评指定的单个output_dir 目录。
     当你在运行命令时传入 --repeat N 时，它的作用如下：
        1.自动扫描子集：脚本不再直接读取 output_dir ，而是去扫描该目录下命名格式为 seed_* 的子文件夹。
-
+       repeat>1时，不再读 output_dir 根目录下的输出，而是扫描其下所有seed_* 子目录，每个seed单独评一遍：
+       outputs/spreadsheetbench/
+       |-seed_42/
+       |   |——spreadsheet/13-1/...
+       |-seed_123/
+       |   |——spreadsheet/13-1/...
     '''
     if args.repeat > 1:
         _run_repeat_evaluation(args)
@@ -408,4 +385,13 @@ def _print_aggregate_summary(all_seed_results: dict) -> None:
    最终在终端中打印包全局通过率、分类准确率等信息的统计报告，并将每一题成功与否的明细保存到 eval_official_results.json 中。
 '''
 if __name__ == "__main__":
+    import sys
+    sys.argv=[
+        "evaluate_with_official.py",
+        "--data_path","data",
+        "--output_dir","outputs/spreadsheetbench",
+        "--start_idx","0",
+        "--end_idx","10",
+        "--verbose",
+    ]
     main()

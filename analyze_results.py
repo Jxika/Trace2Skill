@@ -190,54 +190,29 @@ def export_csv(analyses: list[InstanceAnalysis], csv_file: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze evaluation results with log files")
-    parser.add_argument(
-        "--eval_results",
-        type=str,
-        required=True,
-        help="Path to evaluation results JSON file",
-    )
-    parser.add_argument(
-        "--log_dir",
-        type=str,
-        default=None,
-        help="Directory containing agent log files",
-    )
-    parser.add_argument(
-        "--failed_only",
-        action="store_true",
-        help="Show only failed instances",
-    )
-    parser.add_argument(
-        "--passed_only",
-        action="store_true",
-        help="Show only passed instances",
-    )
-    parser.add_argument(
-        "--csv",
-        type=str,
-        default=None,
-        help="Export results to CSV file",
-    )
-    parser.add_argument(
-        "--no_details",
-        action="store_true",
-        help="Show only summary, not detailed results",
-    )
-    parser.add_argument(
-        "--repeat",
-        type=int,
-        default=1,
-        help="Number of seed runs to process. When > 1, treats --eval_results as a base "
+    # --eval_results 评测结果JSON文件路径
+    parser.add_argument("--eval_results",type=str,required=True,help="Path to evaluation results JSON file",)
+
+    # --log_dir 日志文件目录
+    parser.add_argument("--log_dir",type=str,default=None,help="Directory containing agent log files", )
+
+    #只显示/处理失败的
+    parser.add_argument("--failed_only",action="store_true",help="Show only failed instances",)
+
+    parser.add_argument("--passed_only",action="store_true",help="Show only passed instances",)
+    #导出csv报告的路径。
+    parser.add_argument("--csv",type=str,default=None,help="Export results to CSV file",)
+    #只打印汇总，不打印每题详情。
+    parser.add_argument("--no_details",action="store_true",help="Show only summary, not detailed results",)
+    
+    parser.add_argument("--repeat",type=int,default=1,help="Number of seed runs to process. When > 1, treats --eval_results as a base "
              "directory containing seed_*/ subdirs, each with eval_official_results.json "
-             "(default: 1).",
-    )
-    parser.add_argument(
-        "--base_log_dir",
-        type=str,
-        default=None,
-        help="Base log directory containing seed_*/ subdirs (used with --repeat > 1). "
-             "When set, each seed's logs are read from base_log_dir/seed_*/.",
-    )
+             "(default: 1).",)
+
+    #仅在与 --repeat > 1 配合时有意义。单次跑题时一般只用 --log_dir outputs/logs.
+    parser.add_argument("--base_log_dir",type=str,default=None,help="Base log directory containing seed_*/ subdirs (used with --repeat > 1). "
+             "When set, each seed's logs are read from base_log_dir/seed_*/.",)
+
     args = parser.parse_args()
 
     if args.repeat > 1:

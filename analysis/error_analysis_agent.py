@@ -98,7 +98,7 @@ def format_system_prompt(working_directory: str, system_prompt_path: Path = SYST
     The template uses {working_directory} for the path and {{ / }} for
     literal braces in JSON examples.  A single .format() call handles both.
     """
-    template = system_prompt_path.read_text()
+    template = system_prompt_path.read_text(encoding="utf-8")
     return template.format(working_directory=working_directory)
 
 def sanitize_agent_log(raw_log: str) -> str:
@@ -130,10 +130,7 @@ def sanitize_agent_log(raw_log: str) -> str:
     return text
 
 
-def format_user_prompt(
-    agent_log_text: str,
-    working_dir: str,
-    evaluate_usage: str,
+def format_user_prompt(agent_log_text: str,working_dir: str,evaluate_usage: str,
 ) -> str:
     """
     Read the user prompt template and substitute placeholders.
@@ -147,7 +144,7 @@ def format_user_prompt(
     Uses .replace() instead of .format() because the JSON content may
     contain curly braces that would break str.format().
     """
-    template = USER_PROMPT_PATH.read_text()
+    template = USER_PROMPT_PATH.read_text(encoding="utf-8")
     result = template.replace("{agent_log}", agent_log_text)
     result = result.replace("{working_dir}", working_dir)
     result = result.replace("{evaluate_usage}", evaluate_usage)

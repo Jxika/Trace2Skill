@@ -20,7 +20,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 load_dotenv()
-
 from tqdm import tqdm
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -33,6 +32,10 @@ if str(SRC_DIR) not in sys.path:
 from analysis.report_parsing import collect_error_records
 from analysis.error_analysis_agent import run_error_analysis
 from spreadsheetbench_support import find_spreadsheet_dir, load_dataset
+
+
+
+
 
 
 def parse_generation_config(generation_config: str | None) -> dict:
@@ -340,70 +343,48 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run error analysis agent on SpreadsheetBench instances."
     )
-    parser.add_argument(
-        "--data_path", required=True,
-        help="SpreadsheetBench dataset path (e.g. data/spreadsheetbench_verified/spreadsheetbench_verified_400)",
-    )
-    parser.add_argument(
-        "--work_dir", required=True,
-        help="Target agent's work directory (e.g. agent_output/cli_only_work)",
-    )
-    parser.add_argument(
-        "--logs_dir", required=True,
-        help="Target agent's logs directory (e.g. agent_output/cli_only_logs)",
-    )
-    parser.add_argument(
-        "--output_dir", default="analysis_output",
-        help="Where to save analysis results (default: analysis_output/)",
-    )
-    parser.add_argument(
-        "--instance_ids", default=None,
-        help="Comma-separated specific instance IDs to analyze",
-    )
+    parser.add_argument("--data_path", required=True,help="SpreadsheetBench dataset path (e.g. data/spreadsheetbench_verified/spreadsheetbench_verified_400)",)
+    #原Agent的工作产物目录，用于复制 input.xlsx、output.xlsx 等到分析工作区。
+    parser.add_argument("--work_dir", required=True,help="Target agent's work directory (e.g. agent_output/cli_only_work)",)
+    #Agent轨迹日志目录
+    parser.add_argument("--logs_dir", required=True,help="Target agent's logs directory (e.g. agent_output/cli_only_logs)",)
+    
+    #分析结果保存目录，默认 analysis_output/
+    #每题一个子目录：
+    '''
+    analysis_output/13-1/
+    |- agent_log.md
+    |- agent_work/           #input/output/gold 副本
+    |- analysis_report.md    #最终分析报告
+    |- evaluate_passed.flag  #验证PASS才有
+    |- error_analysis_chat.md
+    '''
+    parser.add_argument("--output_dir", default="analysis_output",help="Where to save analysis results (default: analysis_output/)",)
+    
+    #只分析执行ID，逗号分隔
+    parser.add_argument("--instance_ids", default=None,help="Comma-separated specific instance IDs to analyze",)
+    
     parser.add_argument("--model", required=True, help="Model name (OpenAI-compatible)")
-    parser.add_argument(
-        "--llm_client",
-        type=str,
-        default="openai",
-        choices=["openai", "api_chat"],
-        help="LLM client backend to use",
-    )
-    parser.add_argument(
-        "--api_chat_config",
-        type=str,
-        default="config/llm_api.json",
-        help="Path to ApiChat config JSON when --llm_client=api_chat",
-    )
+    
+    parser.add_argument("--llm_client",type=str,default="openai",choices=["openai", "api_chat"],help="LLM client backend to use",)
+    
+    parser.add_argument("--api_chat_config",type=str,default="config/llm_api.json",help="Path to ApiChat config JSON when --llm_client=api_chat",)
     parser.add_argument("--base_url", default=None, help="OpenAI-compatible base URL")
     parser.add_argument("--api_key", default=None, help="API key (or use OPENAI_API_KEY)")
-    parser.add_argument(
-        "--generation_config",
-        type=str,
-        default=None,
-        help="Generation config as JSON string or path to JSON file",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=None,
-        help="Seed merged into generation config",
-    )
+    
+    parser.add_argument("--generation_config",type=str,default=None,help="Generation config as JSON string or path to JSON file",)
+    
+    parser.add_argument("--seed",type=int,default=None,help="Seed merged into generation config",)
+    
     parser.add_argument("--max_turns", type=int, default=20, help="Max agent turns (default: 20)")
-    parser.add_argument(
-        "--parsed_output",
-        default=None,
-        help="Optional path for parsed JSON records (default: <output_dir>/parsed_error_records.json)",
-    )
+    
+    parser.add_argument("--parsed_output",default=None,help="Optional path for parsed JSON records (default: <output_dir>/parsed_error_records.json)",)
     parser.add_argument("--workers", type=int, default=1, help="Number of parallel workers")
     parser.add_argument("--verbose", action="store_true", help="Verbose logging")
     parser.add_argument("--sample", type=int, default=None, help="Only analyze the first N instances")
-    parser.add_argument(
-        "--repeat",
-        type=int,
-        default=1,
-        help="Number of seed runs. When > 1, discovers instances from seed_*/ subdirectories "
-             "under --logs_dir and names analysis dirs as {id}_seed_{seed} (default: 1).",
-    )
+    
+    parser.add_argument("--repeat",type=int,default=1,help="Number of seed runs. When > 1, discovers instances from seed_*/ subdirectories "
+             "under --logs_dir and names analysis dirs as {id}_seed_{seed} (default: 1).",)
 
     args = parser.parse_args()
     args.generation_config_dict = build_generation_config(args)
