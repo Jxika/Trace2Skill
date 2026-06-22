@@ -16,6 +16,7 @@ import sys
 from collections import defaultdict
 
 from tqdm import tqdm
+from simple_log import SimpleLog
 
 from spreadsheetbench_support import (
     compare_workbooks as local_compare_workbooks,
@@ -75,7 +76,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
 
     # Track by instruction type (like official eval)
     type_results = defaultdict(lambda: {"soft": [], "hard": []})
-
+    log=SimpleLog("simple/simple_log.txt")
     #从 dataset.json 读取关键字段
     for instance in tqdm(dataset):
         instance_id = str(instance["id"])
@@ -90,6 +91,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
 
         # Find spreadsheet directory (contains ground truth) 找到数据目录
         spreadsheet_dir = find_spreadsheet_dir(data_path, instance)
+        log.write(f"evaluate_with_official.py|evaluate|spreadsheet_dir:{spreadsheet_dir}")
         if spreadsheet_dir is None:
             results.append({
                 "id": instance_id,
@@ -101,7 +103,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
 
         # Find output directory for this instance 找到输出目录
         output_instance_dir = find_output_dir(output_dir, instance)
-
+        log.write(f"evaluate_with_official.py|evaluate|output_instance_dir:{output_instance_dir}")
         # Find all test cases (ground truth files)
         # Standard format: *_answer.xlsx, Verified format: *_golden.xlsx
         try:
@@ -116,11 +118,11 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
             continue
 
         gt_files = sorted([f for f in all_files if f.endswith("_answer.xlsx")])
-
+        log.write(f"evaluate_with_official.py|evaluate|gt_files:{gt_files}")
         if not gt_files:
             # Try verified dataset format
             gt_files = sorted([f for f in all_files if f.endswith("_golden.xlsx")])
-
+        log.write(f"evaluate_with_official.py|evaluate|gt_files:{gt_files}")
         #找Ground Truth文件
         if not gt_files:
             # Try exact match for simple naming: golden.xlsx
@@ -137,7 +139,7 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
             continue
 
         test_case_results = []
-
+        log.close()
         for gt_file in gt_files:
             # Derive output filename from ground truth filename
             if gt_file.endswith("_answer.xlsx"):

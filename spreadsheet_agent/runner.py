@@ -15,6 +15,7 @@ from datetime import datetime
 from typing import Iterator
 
 from .agents.base import BaseSpreadsheetAgent, AgentContext
+from simple_log import SimpleLog
 
 #单条测试用例的元数据（ID，自然语言指令、表格路径等）
 @dataclass
@@ -329,7 +330,8 @@ class SpreadsheetBenchRunner:
             answer_position=instance.answer_position,
             instance_id=instance.id,  # Use instance ID for log filename
         )
-
+        with SimpleLog("simple/simple_log.txt") as log:
+            log.write(f"runner.py|_run_test_case|上下文构建完成:{context}")
         # Run agent
         try:
             agent_result = self.agent.run(context)

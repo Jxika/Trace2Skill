@@ -20,7 +20,7 @@ from enum import Enum
 from .converter import ReActConverter, ParsedAction, ParseResult, truncate_observation
 from .models import LLMClient, Message, ModelSettings, RequestContextLengthExceeded
 from .tools import Tool, ToolRegistry
-
+from simple_log import SimpleLog
 
 def _strip_think(text: str) -> str:
     """Strip <think>...</think> prefix from an LLM response.
@@ -204,6 +204,9 @@ class ReActAgent:
             error=error_msg,
         )
 
+    '''
+    run_async 是ReActAgent的核心异步执行入口，实现标准的ReAct循环（ Think -> Act -> Observer -> 重复）。
+    '''
     async def run_async(self, task: str) -> AgentResult:
         """
         Run the agent on a task (asynchronous).
@@ -223,12 +226,14 @@ class ReActAgent:
             tools=tools,
             extra_instructions=self.config.system_instructions,
         )
+        #构建初始 messages [system:系统提示 + 工具说明]，[user: Task:xxx]
 
         messages = [
             Message(role="system", content=system_prompt),
             Message(role="user", content=f"Task: {task}"),
         ]
-
+        with SimpleLog("simple/simple_log.txt") as log:
+            log.write("agent.py|run_async|messages构建完成{messages}")
         # Model settings with stop sequences (temperature handled by client)
         settings = ModelSettings(
             stop=self.converter.get_stop_sequences(),
@@ -242,21 +247,22 @@ class ReActAgent:
 
         format_error_count = 0
         try:
+            ## THINK -> await client.chat_async(messages) 调 LLM 解析响应 -> parse_response()
             for turn in range(1, self.config.max_turns + 1):
                 step = AgentStep(turn=turn)
 
                 # THINK: Get LLM response
                 self.state = AgentState.THINKING
-                response = await self.client.chat_async(messages, settings)
+                response = await self.client.chat_async(messages, settings) #向模型发起请求
 
                 if self.config.verbose:
                     print(f"[Turn {turn}]")
                     print(f"   Response: {response[:500]}..." if len(response) > 500 else f"   Response: {response}")
 
-                # Parse response for action, task completion, or format error
+                # Parse response for action, task completion, or format error 解析模型回复
                 parse_result = self.converter.parse_response(response)
 
-                if parse_result.is_task_complete:
+                if parse_result.is_task_complete:  # 检测到 TASK_COMPLETE -> 成功返回 AgentResult
                     # Task complete signal detected
                     step.thought = response
                     step.is_final = True
@@ -286,7 +292,7 @@ class ReActAgent:
                         success=True,
                     )
 
-                if parse_result.is_format_error:
+                if parse_result.is_format_error:  # 格式错误 -> 把错误提示塞回对话，turn--,重试（不占一轮）
                     # Format error - send error message and retry
                     format_error_count += 1
                     step.thought = response
@@ -312,7 +318,8 @@ class ReActAgent:
                     continue
 
                 # Valid action - execute it
-                action = parse_result.action
+                #有效 Action -> ACT 
+                action = parse_result.action 
                 self.state = AgentState.ACTING
                 step.action = action
                 step.thought = response
@@ -320,13 +327,16 @@ class ReActAgent:
                 if self.config.verbose:
                     print(f"   [Action] {action.name}({action.arguments})")
 
+                #执行工具
                 raw_observation = self.tool_registry.execute(action.name, **action.arguments)
 
                 # OBSERVE: Add result to conversation (truncate long outputs)
-                self.state = AgentState.OBSERVING
+                self.state = AgentState.OBSERVING #把 Observation 追加到 messages
                 # Build action string for pattern matching (e.g., bash command)
                 action_str = str(action.arguments.get("command", "")) if action.arguments else ""
-                observation = truncate_observation(
+
+                #执行结果会被当做 observation，再追加到对话历史里，供一轮模型继续决策。
+                observation = truncate_observation(  #观察结果经过
                     raw_observation,
                     action_str=action_str,
                     no_truncate_patterns=self.config.no_truncate_patterns,
@@ -338,7 +348,7 @@ class ReActAgent:
                     obs_display = observation[:500] + "..." if len(observation) > 500 else observation
                     print(f"   [Observation] {obs_display}")
 
-                if self.on_step:
+                if self.on_step: #如果配置了 on_step,调用回调
                     self.on_step(step)
 
                 # Reset format error count on successful action

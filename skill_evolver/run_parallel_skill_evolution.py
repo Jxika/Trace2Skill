@@ -38,7 +38,7 @@ from spreadsheetbench_support import load_dataset
 from src.react_agent.models import ApiChatClient, OpenAIClient
 from skill_evolver.skill_evolving_agent import PROMPT_VARIANTS, QUICK_VALIDATE_SCRIPT
 from skill_evolver.parallel_evolving_agent import ParallelSkillEvolver
-
+from simple_log import SimpleLog
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -235,222 +235,88 @@ def main() -> None:
         description="Evolve a skill using parallel map-reduce pipeline",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument(
-        "--input-json",
-        required=True,
-        type=Path,
-        help="Path to parsed error analysis JSON or an analysis output directory",
-    )
-    parser.add_argument(
-        "--skill-dir",
-        required=True,
-        type=Path,
-        help="Path to skill directory to evolve",
-    )
-    parser.add_argument(
-        "--data-path",
-        type=Path,
-        default=None,
-        help="SpreadsheetBench dataset path used to derive the task-id sample pool",
-    )
+    #必填，解析后的错误分析记录文件
+    parser.add_argument("--input-json",required=True,type=Path,help="Path to parsed error analysis JSON or an analysis output directory",)
+    #必填，要演化的技能目录
+    parser.add_argument("--skill-dir",required=True,type=Path,help="Path to skill directory to evolve",)
+    #可选，SpreadsheetBench数据集目录
+    parser.add_argument("--data-path",type=Path,default=None,help="SpreadsheetBench dataset path used to derive the task-id sample pool",)
+    
     parser.add_argument("--model", required=True, help="LLM model name")
-    parser.add_argument(
-        "--llm-client",
-        dest="llm_client",
-        type=str,
-        default="openai",
-        choices=["openai", "api_chat"],
-        help="LLM client backend to use",
-    )
-    parser.add_argument(
-        "--api-chat-config",
-        dest="api_chat_config",
-        type=str,
-        default="config/llm_api.json",
-        help="Path to ApiChat config JSON when --llm-client=api_chat",
-    )
-    parser.add_argument(
-        "--base-url", default=None, help="OpenAI-compatible API base URL"
-    )
+    #选择LLM客户端后端
+    parser.add_argument("--llm-client",dest="llm_client",type=str,default="openai",choices=["openai", "api_chat"],help="LLM client backend to use",)
+    #当--llm-client=api_chat时，指定ApiChat配置文件路径
+    parser.add_argument("--api-chat-config",dest="api_chat_config",type=str,default="config/llm_api.json",help="Path to ApiChat config JSON when --llm-client=api_chat",)
+    
+    parser.add_argument("--base-url", default=None, help="OpenAI-compatible API base URL")
+    
     parser.add_argument("--api-key", default=None, help="API key")
-    parser.add_argument(
-        "--generation-config",
-        type=str,
-        default=None,
-        help="Generation config as JSON string or path to JSON file",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=None,
-        help="Seed merged into generation config",
-    )
-    parser.add_argument(
-        "--cache-path",
-        type=Path,
-        default=None,
-        help="Disk cache path for LLM responses",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=1,
-        help="Records per MAP phase LLM call",
-    )
-    parser.add_argument(
-        "--merge-batch-size",
-        type=int,
-        default=5,
-        help="Patches per MERGE phase LLM call",
-    )
-    parser.add_argument(
-        "--max-workers",
-        type=int,
-        default=4,
-        help="ThreadPoolExecutor parallelism",
-    )
-    parser.add_argument(
-        "--max-merge-levels",
-        type=int,
-        default=5,
-        help="Safety cap on hierarchical merge levels",
-    )
-    parser.add_argument(
-        "--start-idx",
-        type=int,
-        default=None,
-        help="Start index (inclusive) for slicing records, or dataset tasks when --data-path is provided",
-    )
-    parser.add_argument(
-        "--end-idx",
-        type=int,
-        default=None,
-        help="End index (exclusive) for slicing records, or dataset tasks when --data-path is provided",
-    )
-    parser.add_argument(
-        "--shuffle-seed",
-        type=int,
-        default=None,
-        help="Shuffle record order, or dataset task order when --data-path is provided, with a fixed seed",
-    )
-    parser.add_argument(
-        "--sample-task-count",
-        type=int,
-        default=None,
-        help="Take this many task ids from the dataset-derived pool and keep only lessons from those tasks",
-    )
-    parser.add_argument(
-        "--sample-task-seed",
-        type=int,
-        default=None,
-        help="Deprecated alias for --shuffle-seed when sampling by dataset task ids",
-    )
-    parser.add_argument(
-        "--continue-evolving",
-        action="store_true",
-        help="Continue evolving without creating a backup",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show changes without writing to disk",
-    )
-    parser.add_argument(
-        "--max-skill-lines",
-        type=int,
-        default=500,
-        help="Max SKILL.md lines",
-    )
-    parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.6,
-        help="LLM temperature",
-    )
-    parser.add_argument(
-        "--max-tokens",
-        type=int,
-        default=None,
-        help="Max generation tokens for LLM responses",
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Print detailed progress",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=None,
-        help="Copy final skill here",
-    )
-    parser.add_argument(
-        "--save-intermediates",
-        action="store_true",
-        help="Save intermediate artifacts (map patches, merge results)",
-    )
-    parser.add_argument(
-        "--parse-failure-dir",
-        type=Path,
-        default=Path("parse_failures_parallel"),
-        help="Directory to save parse-failed LLM prompt/response artifacts",
-    )
-    parser.add_argument(
-        "--intermediates-dir",
-        type=Path,
-        default=None,
-        help="Directory for intermediate artifacts (default: {skill-dir}_parallel_output/)",
-    )
-    parser.add_argument(
-        "--changelog",
-        type=Path,
-        default=None,
-        help="Write changelog to file",
-    )
-    parser.add_argument(
-        "--patch-file",
-        type=Path,
-        default=None,
-        help="Write cumulative unified diff to file",
-    )
-    parser.add_argument(
-        "--prompt",
-        type=str,
-        default="skill",
-        choices=list(PROMPT_VARIANTS.keys()),
-        help="Prompt variant for MAP phase",
-    )
-    parser.add_argument(
-        "--input-mode",
-        type=str,
-        default="auto",
+    
+    parser.add_argument("--generation-config",type=str,default=None,help="Generation config as JSON string or path to JSON file",)
+    
+    parser.add_argument("--seed",type=int,default=None,help="Seed merged into generation config",)
+    
+    parser.add_argument("--cache-path",type=Path,default=None,help="Disk cache path for LLM responses",)
+    #MAP阶段每次处理的记录数量
+    parser.add_argument("--batch-size",type=int,default=1,help="Records per MAP phase LLM call",)
+    #MERGE阶段每次合并的补丁数量
+    parser.add_argument("--merge-batch-size",type=int,default=5,help="Patches per MERGE phase LLM call",)
+    
+    parser.add_argument("--max-workers",type=int,default=4,help="ThreadPoolExecutor parallelism",)
+    #合并层级上限
+    parser.add_argument("--max-merge-levels",type=int,default=5,help="Safety cap on hierarchical merge levels",)
+    
+    parser.add_argument("--start-idx",type=int,default=None,help="Start index (inclusive) for slicing records, or dataset tasks when --data-path is provided",)
+    
+    parser.add_argument("--end-idx",type=int,default=None,help="End index (exclusive) for slicing records, or dataset tasks when --data-path is provided",)
+    
+    parser.add_argument("--shuffle-seed",type=int,default=None,help="Shuffle record order, or dataset task order when --data-path is provided, with a fixed seed",)
+    
+    parser.add_argument("--sample-task-count",type=int,default=None,help="Take this many task ids from the dataset-derived pool and keep only lessons from those tasks",)
+    
+    parser.add_argument("--sample-task-seed",type=int,default=None,help="Deprecated alias for --shuffle-seed when sampling by dataset task ids",)
+    
+    parser.add_argument("--continue-evolving",action="store_true",help="Continue evolving without creating a backup",)
+    #仅显示变化，不写磁盘
+    parser.add_argument("--dry-run",action="store_true",help="Show changes without writing to disk",)
+    #最大行数限制
+    parser.add_argument("--max-skill-lines",type=int,default=500,help="Max SKILL.md lines",)
+    
+    parser.add_argument("--temperature",type=float,default=0.6,help="LLM temperature",)
+    
+    parser.add_argument("--max-tokens",type=int,default=None,help="Max generation tokens for LLM responses",)
+    #打印详细日志
+    parser.add_argument("--verbose",action="store_true",help="Print detailed progress",)
+    #将最终技能复制到指定目录
+    parser.add_argument("--output-dir",type=Path,default=None,help="Copy final skill here",)
+    #保存中间产物
+    parser.add_argument("--save-intermediates",action="store_true",help="Save intermediate artifacts (map patches, merge results)",)
+    #保存解析失败的 prompt/reponse
+    parser.add_argument("--parse-failure-dir",type=Path,default=Path("parse_failures_parallel"),help="Directory to save parse-failed LLM prompt/response artifacts",)
+    #指定中间产物目录
+    parser.add_argument("--intermediates-dir",type=Path,default=None,help="Directory for intermediate artifacts (default: {skill-dir}_parallel_output/)",)
+    
+    parser.add_argument("--changelog",type=Path,default=None,help="Write changelog to file",)
+    
+    #写cumulative patch文件
+    parser.add_argument("--patch-file",type=Path,default=None,help="Write cumulative unified diff to file",)
+    
+    parser.add_argument("--prompt",type=str,default="skill",choices=list(PROMPT_VARIANTS.keys()),
+        help="Prompt variant for MAP phase",)
+    
+    parser.add_argument("--input-mode",type=str,default="auto",
         choices=["records", "patterns", "auto"],
-        help="Input format: 'records', 'patterns', or 'auto' (detect from JSON)",
-    )
-    parser.add_argument(
-        "--skip-translation",
-        action="store_true",
-        help="Skip TRANSLATION phase and apply merged edits directly",
-    )
-    parser.add_argument(
-        "--patch-pipeline",
-        type=str,
-        default="json",
-        choices=["json", "markdown"],
-        help="Patch pipeline format: strict JSON or semantic markdown",
-    )
-    parser.add_argument(
-        "--semantic-item-marker-format",
-        type=str,
-        default="bracket",
-        choices=["bracket", "heading"],
-        help="Item marker syntax for markdown semantic patches",
-    )
-    parser.add_argument(
-        "--disable-json-format-self-fix",
-        action="store_true",
-        help="Disable JSON format-fix retry prompts and rely on direct/heuristic parsing",
-    )
+        help="Input format: 'records', 'patterns', or 'auto' (detect from JSON)",)
+    #跳过 TRANSLATION 阶段，直接应用合并后的补丁
+    parser.add_argument("--skip-translation",action="store_true",help="Skip TRANSLATION phase and apply merged edits directly",)
+    
+    parser.add_argument("--patch-pipeline",type=str,default="json",
+        choices=["json", "markdown"],help="Patch pipeline format: strict JSON or semantic markdown",)
+    
+    parser.add_argument("--semantic-item-marker-format",type=str,default="bracket",choices=["bracket", "heading"],
+        help="Item marker syntax for markdown semantic patches",)
+    #禁用JSON格式自修复重试
+    parser.add_argument("--disable-json-format-self-fix",action="store_true",help="Disable JSON format-fix retry prompts and rely on direct/heuristic parsing",)
     args = parser.parse_args()
     generation_config = _build_generation_config(args)
 
@@ -461,6 +327,7 @@ def main() -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )
+    #根据--verbose决定日志级别，并把部分网络/库日志降噪
     if args.verbose:
         for noisy_logger in ("openai", "httpx", "httpcore", "urllib3"):
             logging.getLogger(noisy_logger).setLevel(logging.WARNING)
@@ -474,6 +341,7 @@ def main() -> None:
     if not args.skill_dir.is_dir():
         log.error("Skill directory not found: %s", args.skill_dir)
         sys.exit(1)
+    #校验SKILL.md 是否存在
     if not (args.skill_dir / "SKILL.md").exists():
         log.error("SKILL.md not found in %s", args.skill_dir)
         sys.exit(1)
@@ -658,19 +526,43 @@ def main() -> None:
     )
 
     # Require the skill format checker for the apply/validate phase
-    if not args.dry_run:
-        if not QUICK_VALIDATE_SCRIPT.exists():
-            log.error(
-                "Skill format checker not found at %s. "
-                "The consolidation step requires this script to validate edits.",
-                QUICK_VALIDATE_SCRIPT,
-            )
-            sys.exit(1)
+    # if not args.dry_run:
+    #     if not QUICK_VALIDATE_SCRIPT.exists():
+    #         log.error(
+    #             "Skill format checker not found at %s. "
+    #             "The consolidation step requires this script to validate edits.",
+    #             QUICK_VALIDATE_SCRIPT,
+    #         )
+    #         sys.exit(1)
 
     # Run pipeline
+    #逐条错误记录（每个失败轨迹作为一个独立输入），适合逐例生成补丁；
+    ''' 示例
+    [
+       {"id": "13-1", "task_id": "13", "agent_log": "...", "failure_cause": "wrong sheet name", ...},
+       {"id": "22-47", "task_id": "22", "agent_log": "...", "failure_cause": "date parsing", ...}
+    ]
+    '''
     if input_mode == "records":
         result = evolver.run(records, input_mode="records")
     else:
+    #处理压缩后的失败模式（把相似失败合并成模式并给出实例），适合生成抽象/泛化的修复策略。
+        '''{
+       "date_parsing_failure": {
+         "failure_cause": "date parsing",
+         "failure_memory": "dates in mixed formats",
+         "examples": [
+           {"id": "24-23", "agent_log": "..."},
+           {"id": "28-7", "agent_log": "..."}
+    ]
+  },
+  "sheet_name_mismatch": {
+    "failure_cause": "sheet name mismatch",
+    "examples": [...]
+  }
+}
+
+        '''
         result = evolver.run(patterns, input_mode="patterns")
 
     # Print summary

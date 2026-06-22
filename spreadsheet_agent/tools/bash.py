@@ -38,6 +38,8 @@ def create_bash_tool(working_dir: str, timeout: int = 120):
                 cwd=working_dir,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout,
             )
             output = ""

@@ -33,10 +33,7 @@ from analysis.report_parsing import collect_error_records
 from analysis.error_analysis_agent import run_error_analysis
 from spreadsheetbench_support import find_spreadsheet_dir, load_dataset
 
-
-
-
-
+from simple_log import SimpleLog
 
 def parse_generation_config(generation_config: str | None) -> dict:
     """Parse generation config from JSON string or JSON file path."""
@@ -231,13 +228,9 @@ def setup_analysis_dir(
 
 
 def run_single_instance(
-    instance_id: str,
-    args,
-    instance_index: dict[str, dict],
-    print_lock: threading.Lock | None = None,
-    log_path_override: str | None = None,
-    dataset_id: str | None = None,
-    work_dir_override: str | None = None,
+    instance_id: str,args,instance_index: dict[str, dict],
+    print_lock: threading.Lock | None = None,log_path_override: str | None = None,
+    dataset_id: str | None = None,work_dir_override: str | None = None,
 ) -> dict:
     """Run error analysis for one instance. Returns a result dict.
 
@@ -259,8 +252,9 @@ def run_single_instance(
                 print(msg)
         else:
             print(msg)
-
+    #analysis_output
     analysis_dir = os.path.join(args.output_dir, instance_id)
+    #如果analysis_report.md 已经存在，就直接跳过，不重复分析，返回skipped=True。
     existing_report = os.path.join(analysis_dir, "analysis_report.md")
     if os.path.isfile(existing_report):
         log(f"\n{'='*60}")
@@ -274,6 +268,7 @@ def run_single_instance(
     log(f"{'='*60}")
 
     # Resolve paths and metadata
+    # 解析当前实例对应的Agent工作目录
     log_path = log_path_override or find_log_file(args.logs_dir, instance_id)
     if not log_path:
         log(f"  SKIP: No log file found for {instance_id}")
@@ -298,6 +293,7 @@ def run_single_instance(
         log(f"  WARNING: No gold file found for {instance_id}")
 
     # Set up analysis workspace
+    # 调用setup_analysis_dir 创建分析工作区
     analysis_dir = setup_analysis_dir(
         output_dir=args.output_dir,
         instance_id=instance_id,
@@ -312,6 +308,8 @@ def run_single_instance(
 
     # Run the analysis agent
     try:
+        with SimpleLog("simple/simple_log.txt") as log1:
+            log1.write(f"run_error_analysis.py|run_single_instance|{analysis_dir}进入LLM分析阶段")
         report = run_error_analysis(
             analysis_dir=os.path.abspath(analysis_dir),
             agent_log_content=log_content,
@@ -376,7 +374,7 @@ def main():
     
     parser.add_argument("--seed",type=int,default=None,help="Seed merged into generation config",)
     
-    parser.add_argument("--max_turns", type=int, default=20, help="Max agent turns (default: 20)")
+    parser.add_argument("--max_turns", type=int, default=50, help="Max agent turns (default: 20)")
     
     parser.add_argument("--parsed_output",default=None,help="Optional path for parsed JSON records (default: <output_dir>/parsed_error_records.json)",)
     parser.add_argument("--workers", type=int, default=1, help="Number of parallel workers")
@@ -406,7 +404,7 @@ def main():
     else:
         print(f"Analyzing {len(instance_ids)} instance(s)")
     os.makedirs(args.output_dir, exist_ok=True)
-
+    #读取数据集索引载入dataset，用ID映射每个实例元信息，用于查gold文件、answer_position等。
     instance_index = build_instance_index(args.data_path)
 
     pbar = tqdm(total=len(instance_ids), desc="Analyzing", unit="instance")
@@ -431,7 +429,12 @@ def main():
             pbar.update(1)
 
     def write_parsed_output() -> str:
+
         parsed_records, passed, total = collect_error_records(args.output_dir)
+        with SimpleLog("simple/simple_log.txt") as log1:
+            log1.write(f"""run_error_analysis.py|write_parsed_output|args.output_dir:{args.output_dir},
+                parsed_records数量:{len(parsed_records)},passed数量:{passed},total数量:{total}
+            """)
         parsed_output = args.parsed_output or os.path.join(args.output_dir, "parsed_error_records.json")
         Path(parsed_output).write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
         print(
@@ -456,6 +459,7 @@ def main():
 
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         futures = {
+            #run_single_instance 调用大模型去分析
             executor.submit(run_single_instance, instance_id, args, instance_index, print_lock): instance_id
             for instance_id in instance_ids
         }
@@ -478,6 +482,7 @@ def main():
     failed = sum(1 for r in results if r.get("error"))
     print(f"\nDone. Results in: {args.output_dir}")
     print(f"Summary: total={len(instance_ids)} skipped={skipped} failed={failed}")
+    #写入 parsed_error_records.json，包含通过验证的错误分析记录，供后续分析使用。
     write_parsed_output()
 
 

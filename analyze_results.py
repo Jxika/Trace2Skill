@@ -20,7 +20,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
-
+from simple_log import SimpleLog
 
 @dataclass
 class InstanceAnalysis:
@@ -220,11 +220,14 @@ def main():
         return
 
     # Analyze results
+    with SimpleLog("simple/simple_log.txt") as log:
+        log.write("analyze_results.py|main|args:{args.eval_results},{args.log_dir}")
     analyses = analyze_results(args.eval_results, args.log_dir)
 
     # Rename log files based on pass/fail status
     rename_log_files(analyses)
-
+    with SimpleLog("simple/simple_log.txt") as log:
+        log.write("analyze_results.py|main|analyses改名字了")
     # Sort by instance_id
     analyses.sort(key=lambda a: a.instance_id)
 
@@ -242,7 +245,9 @@ def main():
     # Print detailed results
     if not args.no_details:
         print_results(analyses, show_passed, show_failed)
-
+    
+    with SimpleLog("simple/simple_log.txt") as log:
+        log.write(f"analyze_results.py|main|csv路径{args.csv},analyses:{analyses}")
     # Export to CSV if requested
     if args.csv:
         export_csv(analyses, args.csv)

@@ -22,7 +22,7 @@ from react_agent.models import ApiChatClient, OpenAIClient
 from react_agent.tools import tool
 from spreadsheet_agent.agents.base import ChatHistoryLogger
 from spreadsheet_agent.tools.bash import create_bash_tool
-
+from simple_log import SimpleLog
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SYSTEM_PROMPT_PATH = SCRIPT_DIR / "error_analysis_system.txt"
@@ -68,6 +68,8 @@ def create_evaluate_tool(
                 cwd=working_dir,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=60,
             )
             output = ""
@@ -189,16 +191,10 @@ def build_evaluate_usage(working_dir: str, answer_position: str | None) -> str:
 
 
 def run_error_analysis(
-    analysis_dir: str,
-    agent_log_content: str,
-    model: str,
-    answer_position: str | None = None,
-    max_turns: int = 20,
-    base_url: str | None = None,
-    api_key: str | None = None,
-    generation_config: dict | None = None,
-    llm_client: str = "openai",
-    api_chat_config: str = "config/llm_api.json",
+    analysis_dir: str,agent_log_content: str,model: str,
+    answer_position: str | None = None,max_turns: int = 20,base_url: str | None = None,
+    api_key: str | None = None,generation_config: dict | None = None,
+    llm_client: str = "openai",api_chat_config: str = "config/llm_api.json",
     verbose: bool = True,
 ) -> str:
     """
@@ -242,6 +238,8 @@ def run_error_analysis(
             generation_config=generation_config,
         )
     else:
+        with SimpleLog("simple/simple_log.txt") as log:
+            log.write("error_analysis_agent.py|run_error_analysis|创建OpenAIClient")
         client = OpenAIClient(
             model=model,
             api_key=api_key or os.getenv("OPENAI_API_KEY") or "EMPTY",
@@ -258,10 +256,14 @@ def run_error_analysis(
     logger.start_session("error_analysis_agent", user_prompt)
     logger.log_system_prompt(system_prompt)
     logger.log_user_task(f"Task: {user_prompt}")
+    
+    
 
     def on_step(step):
         logger.log_step(step)
-
+    
+    with SimpleLog("simple/simple_log.txt") as log:
+        log.write("error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}")
     agent = ReActAgent(
         client=client,
         tools=[bash_tool, evaluate_tool],
@@ -274,6 +276,7 @@ def run_error_analysis(
     )
 
     async def _run_agent():
+        #中间步骤日记都存入了 error_analysis_chat.md 中
         result = await agent.run_async(user_prompt)
 
         if not eval_flag["passed"]:

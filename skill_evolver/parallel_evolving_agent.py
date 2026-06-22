@@ -36,7 +36,7 @@ from skill_evolver.skill_evolving_agent import (
     compute_unified_diff,
     _strip_think,
 )
-
+from simple_log import SimpleLog
 log = logging.getLogger(__name__)
 
 _REFERENCE_PATH_PATTERN = re.compile(r"references/[\w.\-]+\.md")
@@ -3054,12 +3054,8 @@ class ParallelSkillEvolver:
         path.write_text(body, encoding="utf-8")
 
     # -- main orchestrator --------------------------------------------------
-
-    def run(
-        self,
-        records: list[dict],
-        input_mode: str = "records",
-    ) -> dict:
+    # 是整合并行技能演化流水线的主入口函数。
+    def run(self, records: list[dict],input_mode: str = "records",) -> dict:
         """Main entry point: MAP -> REDUCE -> APPLY -> VALIDATE.
 
         Args:
@@ -3071,12 +3067,14 @@ class ParallelSkillEvolver:
             A summary dict with keys: patches, final_patch, edits, diffs,
             reasoning, changelog, cumulative_patch, total_llm_calls.
         """
-        # 1. Freeze original skill state
+        # 冻结技能当前状态。
+        # 生成一个快照，后续所有MAP/MERGE 都基于这个“原始技能状态”
         original_state = self.read_skill_state()
         snapshot = self._evolver._snapshot_skill()
         log.info("Frozen original skill state (%d files)", len(original_state))
 
-        # 2. MAP phase
+        # 2. MAP phase 
+        # 每个batch会调用 LLM 生成“补丁提案”
         if self.patch_pipeline == "markdown":
             if input_mode == "patterns":
                 patches = self.run_map_phase_patterns_markdown(original_state, records)
@@ -3123,6 +3121,7 @@ class ParallelSkillEvolver:
             patches = self._enforce_create_pairing(patches, original_state)
 
         # 3. REDUCE phase
+        # 迭代两两合并补丁提案，直到剩一个最终补丁。每次合并也是一个 LLM 调用。
         if self.patch_pipeline == "markdown":
             final_semantic_patch = self.run_reduce_phase_markdown(original_state, patches)
             final_patch = None
@@ -3143,6 +3142,7 @@ class ParallelSkillEvolver:
             }
 
         # Save final patch
+        # 保存最终合并补丁：output_dir 下写 final_patch.json 或 final_semantic_patch.md
         if self.output_dir:
             if self.patch_pipeline == "markdown":
                 self._save_semantic_patch(
@@ -3157,6 +3157,9 @@ class ParallelSkillEvolver:
                 log.info("Saved final merged patch to %s", self.output_dir / "final_patch.json")
 
         # 4. TRANSLATION phase — optional correction of inexact text references
+        # markdown pipeline:将语义patch转换成精确编辑。
+        # json pipeline:对非文件级编辑进行文本引用修正。
+        # --skip-translation 可以跳过某些情形，但markdown pipeline扔然需要翻译成 exact edits。
         translation_executed = False
         if self.skip_translation and self.patch_pipeline == "markdown":
             log.info(
@@ -3217,6 +3220,7 @@ class ParallelSkillEvolver:
             log.info("APPLY edits: %d, changelog: %d entries", len(edits), len(changelog))
 
         # Compute diffs against original
+        # 计算 diffs：对比原始技能状态，生成 FileDiff
         diffs = self._evolver.compute_diffs(original_state, edits)
 
         # Write edits to disk

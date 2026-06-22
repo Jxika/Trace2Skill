@@ -7,13 +7,14 @@ from dataclasses import dataclass
 from datetime import datetime
 import json
 import os
+from re import S
 import sys
 from typing import Callable
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from react_agent import ReActAgent, AgentConfig, AgentStep, LLMClient, Tool
-
+from simple_log import SimpleLog
 
 @dataclass
 class AgentContext:
@@ -70,7 +71,7 @@ class ChatHistoryLogger:
 
         # Write header
         if self.format == "markdown":
-            with open(self._current_file, "w") as f:
+            with open(self._current_file, "w", encoding="utf-8") as f:
                 f.write(f"# Chat History: {agent_name}\n\n")
                 f.write(f"**Timestamp**: {datetime.now().isoformat()}\n\n")
                 f.write(f"---\n\n")
@@ -80,7 +81,7 @@ class ChatHistoryLogger:
                 "agent_name": agent_name,
                 "timestamp": datetime.now().isoformat(),
             }
-            with open(self._current_file, "w") as f:
+            with open(self._current_file, "w", encoding="utf-8") as f:
                 f.write(json.dumps(header) + "\n")
 
     def log_message(self, role: str, content: str):
@@ -91,7 +92,7 @@ class ChatHistoryLogger:
         self._message_count += 1
 
         if self.format == "markdown":
-            with open(self._current_file, "a") as f:
+            with open(self._current_file, "a", encoding="utf-8") as f:
                 f.write(f"## [{self._message_count}] {role.upper()}\n\n")
                 f.write(f"{content}\n\n")
                 f.write(f"---\n\n")
@@ -103,7 +104,7 @@ class ChatHistoryLogger:
                 "content": content,
                 "timestamp": datetime.now().isoformat(),
             }
-            with open(self._current_file, "a") as f:
+            with open(self._current_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record) + "\n")
 
     def log_step(self, step: AgentStep):
@@ -142,7 +143,7 @@ class ChatHistoryLogger:
             return
 
         if self.format == "markdown":
-            with open(self._current_file, "a") as f:
+            with open(self._current_file, "a", encoding="utf-8") as f:
                 f.write(f"## RESULT\n\n")
                 f.write(f"- Success: {success}\n")
                 f.write(f"- Total Turns: {turns}\n")
@@ -157,7 +158,7 @@ class ChatHistoryLogger:
             }
             if error:
                 record["error"] = error
-            with open(self._current_file, "a") as f:
+            with open(self._current_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record) + "\n")
 
     def get_log_file(self) -> str | None:
@@ -367,8 +368,13 @@ Execute Python code to solve the question and save the modified spreadsheet to t
             self._logger.log_user_task(f"Task: {task_prompt}")
 
         try:
-            result = agent.run(task_prompt)
-            
+            with SimpleLog("simple/simple_log.txt") as log:
+                log.write(f"base.py|run|提示词合成完成:{task_prompt}")
+
+            result = agent.run(task_prompt)     
+            with SimpleLog("simple/simple_log.txt") as log:
+                log.write(f"base.py|run|agent运行完成:{result}")
+
             # Check if output file exists after agent signals completion
             output_exists = os.path.exists(context.output_file)
             

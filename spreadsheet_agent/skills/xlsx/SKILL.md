@@ -148,6 +148,13 @@ This applies to ALL calculations - totals, percentages, ratios, differences, etc
 ### Creating new Excel files
 
 ```python
+
+
+**Important:** The default sheet created by `Workbook()` is named 'Sheet', but most spreadsheet tools and evaluation systems expect 'Sheet1'. Always rename the active sheet immediately after creation:
+
+```python
+ws.title = 'Sheet1'
+```
 # Using openpyxl for formulas and formatting
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment

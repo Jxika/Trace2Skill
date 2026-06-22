@@ -26,6 +26,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from react_agent import ApiChatClient, OpenAIClient
 from spreadsheet_agent import CLISkillPreloadedAgent, SpreadsheetBenchRunner
+from simple_log import SimpleLog
+
 
 
 ALLOWED_SKILL_DIR_NAMES = {"xlsx", "xlsx-122B", "xlsx-35B"}
@@ -60,7 +62,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--api_chat_config",type=str,default="config/llm_api.json",help="Path to ApiChat config JSON when --llm_client=api_chat",)
 
     #每个任务的最大对话轮数；不设则用Agent默认值。
-    parser.add_argument("--max_turns",type=int,default=None,help="Maximum turns per task",)
+    parser.add_argument("--max_turns",type=int,default=80,help="Maximum turns per task",)
     
     #生成温度，传给Agent。
     parser.add_argument("--temperature",type=float,default=0.0,help="Temperature for generation",)
@@ -237,7 +239,7 @@ def create_agent(args):
         "client": client,
         "temperature": args.temperature,
         "verbose": args.verbose,
-        "skills_dir": str(_resolve_skills_dir(args.skills_dir)),
+        "skills_dir": str(_resolve_skills_dir(args.skills_dir)), #加载xlsx 技能
     }
     if args.max_turns is not None:
         agent_kwargs["max_turns"] = args.max_turns
@@ -428,7 +430,11 @@ def run_worker(worker_id, instances, args, working_dir, progress_callback=None):
     results = []
     for instance in instances:
         try:
+            with SimpleLog("simple/simple_log.txt") as log:
+                log.write("run_spreadsheetbench.py|run_worker|{instance}")
             result = runner.run_instance(instance)
+            with SimpleLog("simple/simple_log.txt") as log:
+                log.write("run_spreadsheetbench.py|run_worker|{result}")
             results.append((instance.id, result))
             if progress_callback:
                 progress_callback(instance.id, result.success)
