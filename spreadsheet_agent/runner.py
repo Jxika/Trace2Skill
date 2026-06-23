@@ -233,6 +233,18 @@ class SpreadsheetBenchRunner:
 
         return input_files
 
+    def _create_guige_row_input(self, output_path: str, raw_value: str, sheet_name: str = "sheet") -> None:
+        import openpyxl
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = sheet_name
+        ws["A1"] = "原始值"
+        ws["B1"] = "标化值"
+        ws["A2"] = raw_value
+        wb.save(output_path)
+        wb.close()
+
     def run_instance(self, instance: BenchmarkInstance) -> InstanceResult:
         """Run the agent on a single benchmark instance."""
         spreadsheet_dir = self._find_spreadsheet_dir(instance)
@@ -243,6 +255,16 @@ class SpreadsheetBenchRunner:
                 instruction=instance.instruction,
                 success=False,
                 error=f"Spreadsheet directory not found for {instance.id}",
+            )
+
+        if instance.metadata.get("task_type") == "guige_row":
+            test_result = self._run_guige_row_test_case(instance, spreadsheet_dir)
+            return InstanceResult(
+                id=instance.id,
+                instruction=instance.instruction,
+                success=test_result.success,
+                test_cases=[test_result],
+                error=test_result.error,
             )
 
         input_files = self._find_input_files(spreadsheet_dir)
@@ -273,6 +295,74 @@ class SpreadsheetBenchRunner:
 
         return result
     #执行单条测试
+    def _run_guige_row_test_case(
+        self,
+        instance: BenchmarkInstance,
+        spreadsheet_dir: str,
+    ) -> TestCaseResult:
+        """Run a single guige row standardization task."""
+        raw_value = instance.metadata.get("raw_value", "")
+        answer_sheet = instance.metadata.get("answer_sheet", "sheet")
+        init_file = instance.metadata.get("init_file", "input.xlsx")
+        output_file = "output.xlsx"
+
+        output_subdir = os.path.join(self.output_dir, instance.spreadsheet_path, instance.id)
+        os.makedirs(output_subdir, exist_ok=True)
+        final_output_path = os.path.join(output_subdir, output_file)
+
+        task_subdir_name = instance.id.replace("/", "_").replace("\\", "_")
+        task_working_dir = os.path.join(self.working_dir, task_subdir_name)
+        os.makedirs(task_working_dir, exist_ok=True)
+
+        work_input = os.path.join(task_working_dir, "input.xlsx")
+        work_output = os.path.join(task_working_dir, "output.xlsx")
+        self._create_guige_row_input(work_input, raw_value, sheet_name=answer_sheet)
+
+        if os.path.exists(work_output):
+            os.remove(work_output)
+
+        spreadsheet_content = get_spreadsheet_content(work_input)
+        context = AgentContext(
+            working_dir=task_working_dir,
+            input_file=work_input,
+            output_file=work_output,
+            instruction=instance.instruction,
+            spreadsheet_content=spreadsheet_content,
+            instruction_type=instance.instruction_type,
+            answer_position=instance.answer_position,
+            instance_id=instance.id,
+        )
+        with SimpleLog("simple/simple_log.txt") as log:
+            log.write(f"runner.py|_run_guige_row_test_case|上下文构建完成:{context}")
+
+        try:
+            agent_result = self.agent.run(context)
+
+            if os.path.exists(work_output):
+                shutil.copy(work_output, final_output_path)
+                return TestCaseResult(
+                    input_file=init_file,
+                    output_file=output_file,
+                    success=True,
+                    agent_answer=agent_result.get("answer", ""),
+                    turns=agent_result.get("turns", 0),
+                )
+            return TestCaseResult(
+                input_file=init_file,
+                output_file=output_file,
+                success=False,
+                agent_answer=agent_result.get("answer", ""),
+                turns=agent_result.get("turns", 0),
+                error="Output file was not created",
+            )
+        except Exception as e:
+            return TestCaseResult(
+                input_file=init_file,
+                output_file=output_file,
+                success=False,
+                error=f"{e}\n{traceback.format_exc()}",
+            )
+
     '''
        · 为当前任务在一个工作目录中创建隔离的子文件夹。
        · 将最初的输入表格复制为 input.xlsx,清空旧的 output.xlsx

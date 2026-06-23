@@ -19,6 +19,7 @@ from tqdm import tqdm
 from simple_log import SimpleLog
 
 from spreadsheetbench_support import (
+    compare_guige_row,
     compare_workbooks as local_compare_workbooks,
     find_output_dir,
     find_spreadsheet_dir,
@@ -41,10 +42,25 @@ except ImportError:
      · 优先尝试导入 SpreadsheetBench 官方的比对逻辑，以保证论文评测对齐。
      · 如果本地缺少官方测评包，则自动回退使用项目中自带的本地比对函数。
 '''
-def compare_workbooks(gt_path, output_path, instruction_type, answer_position):
+def compare_workbooks(
+    gt_path,
+    output_path,
+    instruction_type,
+    answer_position,
+    gt_sheet=None,
+    output_sheet=None,
+):
     if official_compare_workbooks is not None:
-        return official_compare_workbooks(gt_path, output_path, instruction_type, answer_position)
-    return local_compare_workbooks(gt_path, output_path, answer_position)
+        return official_compare_workbooks(
+            gt_path, output_path, instruction_type, answer_position
+        )
+    return local_compare_workbooks(
+        gt_path,
+        output_path,
+        answer_position,
+        gt_sheet=gt_sheet,
+        output_sheet=output_sheet,
+    )
 
 '''
    2.核心评估流程
@@ -83,10 +99,82 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
         spreadsheet_path = str(instance.get("spreadsheet_path", instance_id))
         instruction_type = instance.get("instruction_type", "")
         answer_position = instance.get("answer_position", "")
+        gt_sheet = instance.get("golden_sheet")
+        output_sheet = instance.get("answer_sheet")
 
         if not answer_position:
             if verbose:
                 print(f"Warning: No answer_position for {instance_id}, skipping")
+            continue
+
+        if instance.get("task_type") == "guige_row":
+            spreadsheet_dir = find_spreadsheet_dir(data_path, instance)
+            if spreadsheet_dir is None:
+                results.append({
+                    "id": instance_id,
+                    "success": False,
+                    "error": "Spreadsheet directory not found",
+                    "test_cases": [],
+                })
+                continue
+
+            golden_file = instance.get("golden_file")
+            if not golden_file:
+                results.append({
+                    "id": instance_id,
+                    "success": False,
+                    "error": "No golden_file in dataset entry",
+                    "test_cases": [],
+                })
+                continue
+
+            output_instance_dir = find_output_dir(output_dir, instance)
+            gt_path = os.path.join(spreadsheet_dir, golden_file)
+            output_path = os.path.join(output_instance_dir, "output.xlsx")
+            golden_row = int(instance.get("golden_row", instance.get("source_row", 1)))
+            gt_sheet = instance.get("golden_sheet")
+            output_sheet = instance.get("answer_sheet", "sheet")
+            output_cell = answer_position.split(",")[0].strip()
+            if "!" in output_cell:
+                output_cell = output_cell.split("!")[-1]
+
+            total_test_cases += 1
+            try:
+                result, msg = compare_guige_row(
+                    gt_path,
+                    output_path,
+                    gt_sheet,
+                    golden_row,
+                    output_sheet,
+                    output_cell,
+                )
+            except Exception as e:
+                result = False
+                msg = str(e)
+
+            test_case_results = [{
+                "gt_file": golden_file,
+                "output_file": "output.xlsx",
+                "passed": result,
+                "message": msg,
+            }]
+            if result:
+                passed_test_cases += 1
+                fully_correct += 1
+            elif verbose:
+                print(f"  {instance_id}: {msg}")
+
+            soft_score = 1.0 if result else 0.0
+            hard_score = 1 if result else 0
+            type_results[instruction_type]["soft"].append(soft_score)
+            type_results[instruction_type]["hard"].append(hard_score)
+            results.append({
+                "id": instance_id,
+                "success": result,
+                "soft_score": soft_score,
+                "hard_score": hard_score,
+                "test_cases": test_case_results,
+            })
             continue
 
         # Find spreadsheet directory (contains ground truth) 找到数据目录
@@ -159,7 +247,12 @@ def evaluate(data_path, output_dir, start_idx=0, end_idx=None, verbose=False):
             #对每个(gt_path,output_path)调用compare_workbooks().
             try:
                 result, msg = compare_workbooks(
-                    gt_path, output_path, instruction_type, answer_position
+                    gt_path,
+                    output_path,
+                    instruction_type,
+                    answer_position,
+                    gt_sheet=gt_sheet,
+                    output_sheet=output_sheet,
                 )
             except Exception as e:
                 result = False

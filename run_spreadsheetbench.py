@@ -30,7 +30,7 @@ from simple_log import SimpleLog
 
 
 
-ALLOWED_SKILL_DIR_NAMES = {"xlsx", "xlsx-122B", "xlsx-35B"}
+ALLOWED_SKILL_DIR_NAMES = {"xlsx", "xlsx-122B", "xlsx-35B","guige"}
 
 '''
    1.参数解析与配置
@@ -41,10 +41,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the SpreadsheetBench skill-preloaded agent."
     )
-    parser.add_argument("--data_path",type=str,required=True,help="Path to SpreadsheetBench data directory or JSONL file",)
+    #数据集
+    parser.add_argument("--data_path",type=str,default="data",help="Path to SpreadsheetBench data directory or JSONL file",)
     
     #保存Agent生成的输出 EXcel的目录
-    parser.add_argument("--output_dir",type=str,default="outputs/spreadsheetbench",help="Directory to save output spreadsheets",)
+    parser.add_argument("--output_dir",type=str,default="outputs/规格",help="Directory to save output spreadsheets",)
 
     #None（自动创建临时目录）Agent执行时的临时工作目录；多seed运行时会在其下创建seed_{N}子目录。
     parser.add_argument("--working_dir",type=str, default=None,help="Working directory for agent execution",)
@@ -53,13 +54,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--skills_dir",type=str,default=str(Path(__file__).resolve().parent / "spreadsheet_agent" / "skills"),help="Path to spreadsheet skills root directory",)
     
     #使用的LLM模型名。
-    parser.add_argument("--model",type=str,default="gpt-4o",help="Model to use",)
+    parser.add_argument("--model",type=str,default="deepseek-v4-flash",help="Model to use",)
    
     #LLM后端；openai用OpenAIClient(需OPENAI_API_KEY);api_chat用ApiChatClient。
     parser.add_argument("--llm_client",type=str,default="openai",choices=["openai", "api_chat"],help="LLM client backend to use",)
    
     #当 --llm_client=api_chat时。ApiChat的配置JSON路径。
-    parser.add_argument("--api_chat_config",type=str,default="config/llm_api.json",help="Path to ApiChat config JSON when --llm_client=api_chat",)
+    parser.add_argument("--api_chat_config",type=str,default=None,help="Path to ApiChat config JSON when --llm_client=api_chat",)
 
     #每个任务的最大对话轮数；不设则用Agent默认值。
     parser.add_argument("--max_turns",type=int,default=80,help="Maximum turns per task",)
@@ -89,7 +90,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--results_file",type=str,default=None,help="Path to save results JSON",)
     
     #None 保存Agent对话历史的目录；多种子时在子目录seed_{N}下。
-    parser.add_argument("--log_dir",type=str,default=None,help="Directory to save chat history logs",)
+    parser.add_argument("--log_dir",type=str,default="outputs/logs",help="Directory to save chat history logs",)
     
     #对话日志格式；markdown或jsonl。
     parser.add_argument("--log_format",type=str,default="markdown",choices=["markdown", "jsonl"],help="Format for chat history logs",)
@@ -98,7 +99,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--workers",type=int,default=1,help="Number of parallel workers",)
     
     #None 逗号分隔的实例ID列表，只跑指定题目（如13-1）
-    parser.add_argument("--instance_ids",type=str,default=None,help="Comma-separated list of instance IDs to run",)
+    parser.add_argument("--instance_ids",type=str,default="20260622批次",help="Comma-separated list of instance IDs to run",)
     
     #断点续跑：跳过在 --output_dir 中已有完整输出文件的实例
     parser.add_argument("--missing_only",action="store_true",help="Only run instances that do not have complete output files",)
@@ -259,6 +260,11 @@ def create_agent(args):
 def instance_has_outputs(instance, output_dir: str, data_path: str) -> bool:
     instance_id = str(instance.id)
     spreadsheet_path = str(instance.spreadsheet_path)
+
+    if instance.metadata.get("task_type") == "guige_row":
+        output_path = os.path.join(output_dir, spreadsheet_path, instance_id, "output.xlsx")
+        return os.path.isfile(output_path)
+
     output_candidates = [
         os.path.join(output_dir, spreadsheet_path),
         os.path.join(output_dir, instance_id),
@@ -308,11 +314,25 @@ def instance_has_outputs(instance, output_dir: str, data_path: str) -> bool:
 def filter_instances(instances, args, data_path: str):
     if args.instance_ids:
         requested_ids = {item.strip() for item in args.instance_ids.split(",")}
-        instances = [inst for inst in instances if str(inst.id) in requested_ids]
+
+        def _matches(inst) -> bool:
+            inst_id = str(inst.id)
+            if inst_id in requested_ids:
+                return True
+            return any(
+                inst_id.startswith(f"{requested_id}-")
+                for requested_id in requested_ids
+            )
+
+        instances = [inst for inst in instances if _matches(inst)]
         found_ids = {str(inst.id) for inst in instances}
         not_found = requested_ids - found_ids
-        if not_found:
-            print(f"Warning: Instance IDs not found in dataset: {', '.join(sorted(not_found))}")
+        unmatched = {
+            rid for rid in not_found
+            if not any(str(inst.id).startswith(f"{rid}-") for inst in instances)
+        }
+        if unmatched:
+            print(f"Warning: Instance IDs not found in dataset: {', '.join(sorted(unmatched))}")
     if args.missing_only:
         original_count = len(instances)
         instances = [

@@ -105,11 +105,13 @@ def generate_cell_names(range_str, max_row=None, max_col=None):
     return [f"{col}{row}" for col in columns for row in range(start_row_num, end_row_num + 1)]
 
 
-def cell_level_compare(wb_gt, wb_proc, sheet_name, cell_range):
-    if sheet_name not in wb_proc.sheetnames:
-        return False, f"Worksheet '{sheet_name}' not found in output"
-    ws_gt = wb_gt[sheet_name]
-    ws_proc = wb_proc[sheet_name]
+def cell_level_compare(wb_gt, wb_proc, gt_sheet, proc_sheet, cell_range):
+    if gt_sheet not in wb_gt.sheetnames:
+        return False, f"Worksheet '{gt_sheet}' not found in ground truth"
+    if proc_sheet not in wb_proc.sheetnames:
+        return False, f"Worksheet '{proc_sheet}' not found in output"
+    ws_gt = wb_gt[gt_sheet]
+    ws_proc = wb_proc[proc_sheet]
     cell_names = generate_cell_names(cell_range, max_row=ws_gt.max_row, max_col=ws_gt.max_column)
 
     for cell_name in cell_names:
@@ -122,7 +124,13 @@ def cell_level_compare(wb_gt, wb_proc, sheet_name, cell_range):
     return True, ""
 
 
-def compare_workbooks(gt_file, output_file, answer_position):
+def compare_workbooks(
+    gt_file,
+    output_file,
+    answer_position,
+    gt_sheet=None,
+    output_sheet=None,
+):
     if not os.path.exists(output_file):
         return False, "Output file not found"
 
@@ -132,20 +140,62 @@ def compare_workbooks(gt_file, output_file, answer_position):
     except Exception as exc:
         return False, f"Error loading workbook: {exc}"
 
+    default_gt_sheet = gt_sheet or wb_gt.sheetnames[0]
+    default_output_sheet = output_sheet or default_gt_sheet
+
     for sheet_cell_range in answer_position.split(","):
         sheet_cell_range = sheet_cell_range.strip()
         if "!" in sheet_cell_range:
             sheet_name, cell_range = sheet_cell_range.split("!")
             sheet_name = sheet_name.strip("'")
+            gt_sheet_name = sheet_name
+            proc_sheet_name = sheet_name
         else:
-            sheet_name = wb_gt.sheetnames[0]
+            gt_sheet_name = default_gt_sheet
+            proc_sheet_name = default_output_sheet
             cell_range = sheet_cell_range
 
         cell_range = cell_range.strip("'")
-        result, message = cell_level_compare(wb_gt, wb_proc, sheet_name, cell_range)
+        result, message = cell_level_compare(
+            wb_gt, wb_proc, gt_sheet_name, proc_sheet_name, cell_range
+        )
         if not result:
             return False, message
 
+    return True, ""
+
+
+def compare_guige_row(
+    gt_file,
+    output_file,
+    golden_sheet,
+    golden_row,
+    output_sheet,
+    output_cell,
+    golden_col=1,
+):
+    """Compare one golden cell against one output cell for guige row tasks."""
+    if not os.path.exists(output_file):
+        return False, "Output file not found"
+
+    try:
+        wb_gt = openpyxl.load_workbook(filename=gt_file, data_only=True)
+        wb_out = openpyxl.load_workbook(filename=output_file, data_only=True)
+    except Exception as exc:
+        return False, f"Error loading workbook: {exc}"
+
+    if golden_sheet not in wb_gt.sheetnames:
+        return False, f"Worksheet '{golden_sheet}' not found in ground truth"
+    if output_sheet not in wb_out.sheetnames:
+        return False, f"Worksheet '{output_sheet}' not found in output"
+
+    expected = wb_gt[golden_sheet].cell(golden_row, golden_col).value
+    actual = wb_out[output_sheet][output_cell].value
+    if not compare_cell_value(expected, actual):
+        return False, (
+            f"Value mismatch at {output_sheet}!{output_cell} "
+            f"(golden row {golden_row}): expected '{expected}', got '{actual}'"
+        )
     return True, ""
 
 
@@ -204,10 +254,16 @@ def find_output_dir(output_base, instance):
     instance_id = str(instance["id"])
     spreadsheet_path = str(instance.get("spreadsheet_path", instance_id))
 
-    candidates = [
-        os.path.join(output_base, spreadsheet_path),
-        os.path.join(output_base, instance_id),
-    ]
+    if instance.get("task_type") == "guige_row":
+        candidates = [
+            os.path.join(output_base, spreadsheet_path, instance_id),
+            os.path.join(output_base, instance_id),
+        ]
+    else:
+        candidates = [
+            os.path.join(output_base, spreadsheet_path),
+            os.path.join(output_base, instance_id),
+        ]
 
     for path in candidates:
         if os.path.isdir(path):
