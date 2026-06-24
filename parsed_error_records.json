@@ -1,5 +1,203 @@
 [
   {
+    "instance_id": "20260622批次-0001",
+    "source_file": "analysis_report.md",
+    "items": [
+      {
+        "type": "failure_cause",
+        "number": 1,
+        "title": "对中成药规格标化的 SOP 规则理解错误",
+        "description": "Agent 错误地将中成药颗粒剂当作普通固体制剂进行标化，导致规则应用偏差。",
+        "content": "Agent 收到原文“黄芪颗粒每袋装4g （每1g相当于饮片3.7g）”后，按照通用固体制剂规则去除了“每袋装”包装用语，并将全角括号转为半角，得到 “4g(每1g相当于饮片3.7g)”。但 SOP 对中成药有专用规则：应保留“每袋装”信息，并将“每1g相当于饮片3.7g”换算为“每袋装4g相当于原生药14.8g”（SOP §2.3.8 中成药规则）。Agent 没有识别这是中成药颗粒剂，未应用专用规则，导致结果与 gold 不一致。",
+        "relation_to_skill": ""
+      },
+      {
+        "type": "failure_cause",
+        "number": 2,
+        "title": "单位等价关系换算缺失",
+        "description": "Agent 将“每1g相当于饮片3.7g”直接作为文字保留，未计算总量等价关系。",
+        "content": "原文中的“每1g相当于饮片3.7g”是单位当量描述，需要乘以装量 4g 得到原生药总量（4 × 3.7 = 14.8g），最终输出为“相当于原生药14.8g”。Agent 将其视为文字性括号描述直接保留，而没有执行 SOP 要求的“单位当量换算为原生药总量”步骤，导致结果错误。\n\n---",
+        "relation_to_skill": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 1,
+        "title": "中成药颗粒剂规格需保留“每袋装”并换算原生药总量",
+        "description": "中成药颗粒剂规格标化时，不可去除“每袋装”，需计算单位当量与装量的乘积。",
+        "content": "遇到中成药颗粒剂原文含“每×g相当于饮片×g”时，先提取装量数字（如4g）和每1g相当于饮片的克数（如3.7g），再计算装量×当量的原生药总克数，输出格式为“每袋装装量g相当于原生药总克数g”。",
+        "skill_reflection": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 2,
+        "title": "中成药与普通固体制剂的标化规则不同，需按剂型分流",
+        "description": "中成药规格不可直接套用通用固体制剂的“去除包装用语”规则。",
+        "content": "判断是否为中成药：原文含“相当于”字样且描述单位当量关系，则走中成药专用路径，保留“每袋装/每丸重”等信息，不可按通用规则去除包装用语或仅做符号处理。",
+        "skill_reflection": ""
+      }
+    ]
+  },
+  {
+    "instance_id": "20260622批次-0002",
+    "source_file": "analysis_report.md",
+    "items": [
+      {
+        "type": "failure_cause",
+        "number": 1,
+        "title": "Agent 错误保留了括号内活性成分的注释说明",
+        "description": "Agent 将规格原文括号内的「按C？？H？？ClNO计」作为规格规范的一部分保留在输出中，而规范要求去除此类活性成分注释。",
+        "content": "从日志可见，Agent 最终写入 output.xlsx 的 B2 值为 `500ml:50mg(按C??H??ClNO计)`。Gold 标准答案为 `500ml:50mg`。Agent 未遵循 SOP §2.1「程序通用规则」——该规则隐含要求仅保留核心规格量值与比值，去除包装、剂型存在形式以及成分注释等非规格核心信息。(按C??H??ClNO计) 为活性成分的化学结构注释，不应出现在规格规范中。",
+        "relation_to_skill": ""
+      },
+      {
+        "type": "failure_cause",
+        "number": 2,
+        "title": "工作表中 sheet 名称为 sheet1，Agent 初始误用了 sheet",
+        "description": "Agent 第一次写入时引用了不存在的工作表名 \"sheet\"，导致失败，浪费了一次工具调用。",
+        "content": "Agent 读取 input.xlsx 时默认假设工作表名为 \"sheet\"，但实际工作簿中工作表名为 \"sheet1\"。日志显示首次 `wb['sheet']` 抛出 KeyError。Agent 需先检查 sheetnames 再操作，但技能未强制要求该步骤。",
+        "relation_to_skill": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 1,
+        "title": "规格括弧内的成分注释说明应当去除",
+        "description": "液体制剂规格中，括号内如「按XX计」等活性成分的化学结构注释不应保留在规格规范字符串中。",
+        "content": "对于化学药液体制剂，规格规范仅保留 `Xml:Ymg` 形式的核心比值与单位。括号内的「按C??H??ClNO计」「按C22H27ClNO2计」等活性成分注释应予以删除，不写入最终的规格规范。",
+        "skill_reflection": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 2,
+        "title": "工作表名称不应硬编码为 sheet，应当动态获取",
+        "description": "操作 input.xlsx 前，应先通过 sheetnames 或 active 属性确认工作表名称，避免因硬编码 sheet 导致 KeyError。",
+        "content": "打开工作簿后应立即打印或检查 sheetnames，使用 `wb.active` 或 `wb[wb.sheetnames[0]]` 获取唯一工作表，不要在脚本中硬写入 'sheet'、'sheet1' 等固定名称。\n```",
+        "skill_reflection": ""
+      }
+    ]
+  },
+  {
+    "instance_id": "20260622批次-0004",
+    "source_file": "analysis_report.md",
+    "items": [
+      {
+        "type": "failure_cause",
+        "number": 1,
+        "title": "毫克单位未按进位规则转换为微克",
+        "description": "Agent 在标化时未将数值小于1的 mg 单位转换为 µg，导致规格不符合「禁止 mg 前出现小数」的规范要求。",
+        "content": "Agent 保留了原文中的 `0.05mg`，而按规格标化 SOP 的通用规则（§2.1，单位进位逻辑），当 mg 数值小于 1 时应转换为 µg，即 0.05mg → 50µg。该转换未被触发，导致标化结果不完整。",
+        "relation_to_skill": ""
+      },
+      {
+        "type": "failure_cause",
+        "number": 2,
+        "title": "未去除括号内的冗余分子式注释",
+        "description": "Agent 保留了原文中用于说明分子式的括号内容 `(按C??H??N??O?计)`，未按「简洁原则」将其删除。",
+        "content": "规格原文末尾的 `（按C？？H？？N？O？计）` 属于冗余注释，在 SOP 简洁原则（§2.2）下应被移除。Agent 未识别该部分是否需要删除，误将其保留在标化结果中。",
+        "relation_to_skill": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 1,
+        "title": "液体制剂中小于1的 mg 单位自动转为 µg",
+        "description": "液体制剂中若含量数值小于 1 mg（如 0.05mg），应按单位进位规则统一表示为 µg，避免规格中出现小数 mg。",
+        "content": "SOP 禁止 mg 前出现小数，因此遇到 `Xml:Ymg` 且 Y<1 时，应转换为 `Xml:Zµg`，Z=Y*1000。",
+        "skill_reflection": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 2,
+        "title": "去除配方/分子式等非规格核心信息",
+        "description": "规格标准化时应删除括号内的分子式、配方说明、中间体描述等非必要内容，除非 SOP 明确要求保留。",
+        "content": "对于中文药名后括号内非规格数值的文字（如「按C??H??N??O?计」「按干燥品计」「无活性的载体」），应判定为冗余信息并予以删除，仅保留规格核心数值与单位。",
+        "skill_reflection": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 3,
+        "title": "多步规则需按优先级顺序执行",
+        "description": "规格标化包含多个子规则（单位换算、冗余删除、括号层级等），必须按 SOP 规定的顺序依次执行，不可跳过或自行合并。",
+        "content": "Agent 应按照「程序通用规则 → 基本原则 → 剂型格式 → 输出前检查」流程逐步处理，例如先执行单位进位，再删除冗余括号注释，确保最终结果与 SOP 一致。",
+        "skill_reflection": ""
+      }
+    ]
+  },
+  {
+    "instance_id": "20260622批次-0006",
+    "source_file": "analysis_report.md",
+    "items": [
+      {
+        "type": "failure_cause",
+        "number": 1,
+        "title": "药品规格中无效化学式描述未去除",
+        "description": "Agent 将规格原文中无效的化学式描述「（按C？？H？？N？O？计）」错误地保留到标化结果中，导致与标准答案（纯剂量）不符。",
+        "content": "Agent 认为「按C？？H？？N？O？计」是原文的一部分应完整保留，而 SOP §2.2 基本原则要求规格规范「简洁」且去除冗余信息；含问号的化学式为无效描述，不属于规格必要信息，应去除。Agent 未能识别问号为占位符而非有效成分含量说明。",
+        "relation_to_skill": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 1,
+        "title": "无效的化学式/分子式描述应去除",
+        "description": "规格原文中若出现含问号或非标准符号的化学式/分子式描述（如「按C??H??N??O?计」），该部分不具备有效信息，应直接去除，不保留在规格规范中。",
+        "content": "SOP 简洁原则要求去除冗余；含问号的化学式不是规范的分子式，不属于药品规格的有效组成部分，标化时应仅保留有效剂量部分。",
+        "skill_reflection": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 2,
+        "title": "规格规范中「按……计」的取舍规则",
+        "description": "只有规范的化学分子式（如 C₁₂H₁₅ClN₂ 或 C22H24N2O8）才可保留，含问号等占位符的「按…计」描述应视为无效信息直接去除。",
+        "content": "标化时需区分有效成分说明与无效占位符：规范分子式可保留，含问号/未定义的「按…计」是无效信息，不应写入规格规范。",
+        "skill_reflection": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 3,
+        "title": "规格标化时应识别并去除原文中的占位符信息",
+        "description": "原文中的占位符「？？？」表示待补充字段，不应作为规格内容保留。Agent 需识别此类占位符并去除，仅保留有效剂量。",
+        "content": "规格原文中若出现「？？？」、未定义缩写等明显为占位符的内容，应判断为无效信息并去除，避免污染标化结果。\n```",
+        "skill_reflection": ""
+      }
+    ]
+  },
+  {
+    "instance_id": "20260622批次-0007",
+    "source_file": "analysis_report.md",
+    "items": [
+      {
+        "type": "failure_cause",
+        "number": 1,
+        "title": "规格规范中不当保留化学式说明",
+        "description": "Agent 将非剂量信息的化学式说明 `(以C21H35NO计)` 保留在规格规范中，导致标化结果与标准答案不符。",
+        "content": "Agent 在处理原文“盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）”时，认为应“保留核心剂量信息和化学式说明”，错误地将括号内的化学式说明视为规格规范的一部分。根据SOP核心流程，规格规范只包含剂量/装量信息，化学式说明（如“以C21H35NO计”）不属于规格规范内容，应被去除。此错误导致输出结果为 `20g:50mg(以C21H35NO计)` 而非标准答案 `20g:50mg`。",
+        "relation_to_skill": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 1,
+        "title": "化学式/分子式说明不在规格规范中保留",
+        "description": "规格原文中括号内的化学式说明（如\"以C21H35NO计\"）只用于化学标识，不应写入规格规范。",
+        "content": "标化时若原文中包含“（以…计）”形式的化学式说明，仅保留其修饰的剂量信息，化学式说明本身应丢弃。",
+        "skill_reflection": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 2,
+        "title": "规格规范仅保留剂量/装量信息",
+        "description": "规格规范字符串应只包含与药品剂量或装量相关的数值和单位，去除药品名、剂型、化学式等非剂量信息。",
+        "content": "标化的核心目标是提取出规格表述中的剂量/装量信息，以最简洁的形式呈现；所有非剂量描述（包括药品名、剂型、化学式说明）均应从规格规范中移除。",
+        "skill_reflection": ""
+      },
+      {
+        "type": "failure_memory",
+        "number": 3,
+        "title": "半固体制剂优先使用重量比表示",
+        "description": "乳膏等半固体制剂若原文同时有百分比和重量比，应优先选择重量比表示。",
+        "content": "当半固体制剂规格同时提供百分比（如0.25%）和重量比（如20g:50mg）时，按SOP应使用重量比格式，舍弃百分比。原文中的百分比信息仅为冗余说明，不需要在规格规范中体现。",
+        "skill_reflection": ""
+      }
+    ]
+  },
+  {
     "instance_id": "24-23",
     "source_file": "analysis_report.md",
     "items": [
@@ -8,7 +206,7 @@
         "number": 1,
         "title": "Default sheet name mismatch in new workbook",
         "description": "The agent created a new workbook with openpyxl.Workbook(), which creates a default sheet named 'Sheet', but the task's answer_position referred to a sheet named 'Sheet1'.",
-        "content": "The agent read the input file, filtered rows, and wrote the result to a new workbook using `openpyxl.Workbook()`. Openpyxl's default active sheet is named 'Sheet', while the expected or conventional sheet name for spreadsheet manipulation tasks\u2014especially those that produce a new file\u2014is 'Sheet1'. The answer_position \"A2:D207\" implicitly refers to 'Sheet1' as the base sheet name, but the output file only contained a sheet named 'Sheet', causing a sheet-not-found evaluation error even though all cell data were correct.\n\n---",
+        "content": "The agent read the input file, filtered rows, and wrote the result to a new workbook using `openpyxl.Workbook()`. Openpyxl's default active sheet is named 'Sheet', while the expected or conventional sheet name for spreadsheet manipulation tasks—especially those that produce a new file—is 'Sheet1'. The answer_position \"A2:D207\" implicitly refers to 'Sheet1' as the base sheet name, but the output file only contained a sheet named 'Sheet', causing a sheet-not-found evaluation error even though all cell data were correct.\n\n---",
         "relation_to_skill": ""
       },
       {

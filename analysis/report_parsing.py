@@ -16,14 +16,18 @@ _ERROR_ITEM_TYPE_MAP = {
     "Failure Memory Item": "failure_memory",
 }
 
-_ERROR_ITEM_PATTERN = re.compile(
-    r"^#\s+(Failure Cause Item|Failure Memory Item)\s+(\d+)\s*\n"
-    r"(.*?)(?=\n#\s+(?:Failure Cause Item|Failure Memory Item)\s+\d+|\Z)",
-    re.MULTILINE | re.DOTALL,
+# Item heading: "# Failure Cause Item 1" or "### # Failure Cause Item 1"
+_ERROR_ITEM_HEADING = re.compile(
+    r"^(?:#{1,4}\s+)*#\s+(Failure Cause Item|Failure Memory Item)\s+(\d+)\s*$",
+    re.MULTILINE,
 )
-_ERROR_SECTION_PATTERN = re.compile(
-    r"^##\s+{name}\s*\n(.*?)(?=\n##\s+|\Z)",
-    re.MULTILINE | re.DOTALL,
+
+_ERROR_SECTION_NAMES = (
+    "Title",
+    "Description",
+    "Content",
+    "Relation to Skill",
+    "Skill Reflection",
 )
 
 _SUCCESS_ITEM_HEADING_PATTERN = re.compile(
@@ -51,17 +55,28 @@ def strip_think_prefix(text: str) -> str:
 
 
 def _extract_error_section(body: str, section_name: str) -> str:
-    pattern = _ERROR_SECTION_PATTERN.pattern.format(name=re.escape(section_name))
-    match = re.search(pattern, body, re.MULTILINE | re.DOTALL)
+    """Extract Title/Description/Content; accepts ## through #### headings."""
+    other_sections = "|".join(
+        re.escape(name) for name in _ERROR_SECTION_NAMES if name != section_name
+    )
+    pattern = re.compile(
+        rf"^#{{2,4}}\s+{re.escape(section_name)}\s*\n"
+        rf"(.*?)(?=^#{{2,4}}\s+(?:{other_sections})\s*\n|\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
+    match = pattern.search(body)
     return match.group(1).strip() if match else ""
 
 
 def parse_error_items(text: str) -> list[dict]:
     text = strip_code_fences(strip_think_prefix(text))
     items = []
-    for match in _ERROR_ITEM_PATTERN.finditer(text):
+    matches = list(_ERROR_ITEM_HEADING.finditer(text))
+    for idx, match in enumerate(matches):
         item_type_raw = match.group(1)
-        body = match.group(3).strip()
+        body_start = match.end()
+        body_end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
+        body = text[body_start:body_end].strip()
         record = {
             "type": _ERROR_ITEM_TYPE_MAP[item_type_raw],
             "number": int(match.group(2)),

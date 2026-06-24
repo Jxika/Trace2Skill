@@ -83,3 +83,889 @@ C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_op0jbo7_\20260622批次_202
 Solve the question and save the modified spreadsheet to the exact output_path shown above.
 2026-06-23 10:12:59 agent.py|run_async|messages构建完成{messages}
 2026-06-23 10:14:54 base.py|run|agent运行完成:AgentResult(✓, turns=32, answer=...)
+2026-06-23 11:23:05 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_4m2k2kmd\\20260622批次-0001', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_4m2k2kmd\\20260622批次-0001\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_4m2k2kmd\\20260622批次-0001\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：黄芪颗粒每袋装4g （每1g相当于饮片3.7g)\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('黄芪颗粒每袋装4g （每1g相当于饮片3.7g)', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0001')
+2026-06-23 13:21:32 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0001', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0001\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0001\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：黄芪颗粒每袋装4g （每1g相当于饮片3.7g)\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('黄芪颗粒每袋装4g （每1g相当于饮片3.7g)', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0001', task_type='guige_row')
+2026-06-23 13:22:17 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0001
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：黄芪颗粒每袋装4g （每1g相当于饮片3.7g)
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0001\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('黄芪颗粒每袋装4g （每1g相当于饮片3.7g)', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0001\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0001`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0001\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:22:20 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:23:19 base.py|run|agent运行完成:AgentResult(✓, turns=6, answer=...)
+2026-06-23 13:25:13 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0002', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0002\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0002\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：富马酸氯马斯汀口服溶液500ml：50mg（按C？？H？？ClNO计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('富马酸氯马斯汀口服溶液500ml：50mg（按C？？H？？ClNO计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0002', task_type='guige_row')
+2026-06-23 13:25:15 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0002
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：富马酸氯马斯汀口服溶液500ml：50mg（按C？？H？？ClNO计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0002\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('富马酸氯马斯汀口服溶液500ml：50mg（按C？？H？？ClNO计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0002\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0002`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0002\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:25:15 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:25:42 base.py|run|agent运行完成:AgentResult(✓, turns=4, answer=...)
+2026-06-23 13:26:04 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0003', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0003\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0003\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：司库奇尤单抗注射液150mg（1ml）/支\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('司库奇尤单抗注射液150mg（1ml）/支', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0003', task_type='guige_row')
+2026-06-23 13:26:04 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0003
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：司库奇尤单抗注射液150mg（1ml）/支
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0003\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('司库奇尤单抗注射液150mg（1ml）/支', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0003\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0003`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0003\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:26:04 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:26:20 base.py|run|agent运行完成:AgentResult(✓, turns=4, answer=...)
+2026-06-23 13:26:20 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0004', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0004\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0004\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：醋酸地非法林注射液1ml：0.05mg（按C？？H？？N？O？计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('醋酸地非法林注射液1ml：0.05mg（按C？？H？？N？O？计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0004', task_type='guige_row')
+2026-06-23 13:26:20 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0004
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：醋酸地非法林注射液1ml：0.05mg（按C？？H？？N？O？计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0004\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('醋酸地非法林注射液1ml：0.05mg（按C？？H？？N？O？计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0004\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0004`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0004\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:26:20 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:26:33 base.py|run|agent运行完成:AgentResult(✓, turns=2, answer=...)
+2026-06-23 13:26:33 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0005', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0005\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0005\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：注射用甲泼尼龙琥珀酸钠40mg（以C？？H？？O？计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('注射用甲泼尼龙琥珀酸钠40mg（以C？？H？？O？计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0005', task_type='guige_row')
+2026-06-23 13:26:33 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0005
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：注射用甲泼尼龙琥珀酸钠40mg（以C？？H？？O？计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0005\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('注射用甲泼尼龙琥珀酸钠40mg（以C？？H？？O？计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0005\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0005`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0005\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:26:33 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:26:50 base.py|run|agent运行完成:AgentResult(✓, turns=4, answer=...)
+2026-06-23 13:26:50 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0006', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0006\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0006\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：盐酸沙瑞环素片60mg（按C？？H？？N？O？计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('盐酸沙瑞环素片60mg（按C？？H？？N？O？计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0006', task_type='guige_row')
+2026-06-23 13:26:50 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0006
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：盐酸沙瑞环素片60mg（按C？？H？？N？O？计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0006\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('盐酸沙瑞环素片60mg（按C？？H？？N？O？计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0006\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0006`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0006\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:26:50 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:27:09 base.py|run|agent运行完成:AgentResult(✓, turns=5, answer=...)
+2026-06-23 13:27:09 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0007', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0007\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0007\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0007', task_type='guige_row')
+2026-06-23 13:27:09 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0007
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0007\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0007\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0007`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0007\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:27:09 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:27:37 base.py|run|agent运行完成:AgentResult(✓, turns=2, answer=...)
+2026-06-23 13:27:37 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0008', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0008\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0008\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：氯化琥珀胆碱注射液10ml：0.2g\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('氯化琥珀胆碱注射液10ml：0.2g', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0008', task_type='guige_row')
+2026-06-23 13:27:37 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0008
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：氯化琥珀胆碱注射液10ml：0.2g
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0008\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('氯化琥珀胆碱注射液10ml：0.2g', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0008\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0008`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0008\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:27:37 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:27:50 base.py|run|agent运行完成:AgentResult(✓, turns=2, answer=...)
+2026-06-23 13:27:50 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0009', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0009\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0009\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：布地奈德福莫特罗吸入气雾剂（I）每瓶120揿，每揿含布地奈德91μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）5.1μg，递送剂量为布地奈德80μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）4.5μg\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('布地奈德福莫特罗吸入气雾剂（I）每瓶120揿，每揿含布地奈德91μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）5.1μg，递送剂量为布地奈德80μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）4.5μg', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0009', task_type='guige_row')
+2026-06-23 13:27:50 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0009
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：布地奈德福莫特罗吸入气雾剂（I）每瓶120揿，每揿含布地奈德91μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）5.1μg，递送剂量为布地奈德80μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）4.5μg
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0009\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('布地奈德福莫特罗吸入气雾剂（I）每瓶120揿，每揿含布地奈德91μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）5.1μg，递送剂量为布地奈德80μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）4.5μg', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0009\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0009`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0009\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:27:50 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:28:38 base.py|run|agent运行完成:AgentResult(✓, turns=14, answer=Output.xlsx 已成功生成，B2 单元格已写入标化结果（原文 + 需人工核查标注）。任务完成...)
+2026-06-23 13:28:38 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0010', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0010\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench__h47zace\\20260622批次-0010\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：盐酸甲氧氯普胺口服溶液200ml：200mg\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('盐酸甲氧氯普胺口服溶液200ml：200mg', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0010', task_type='guige_row')
+2026-06-23 13:28:38 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0010
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：盐酸甲氧氯普胺口服溶液200ml：200mg
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0010\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('盐酸甲氧氯普胺口服溶液200ml：200mg', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0010\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0010`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench__h47zace\20260622批次-0010\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:28:38 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:29:25 base.py|run|agent运行完成:AgentResult(✓, turns=7, answer=文件已成功创建到指定路径。当前output.xlsx中B2单元格的内容为"盐酸甲氧氯普胺口服溶液20...)
+2026-06-23 13:50:58 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0001', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0001\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0001\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：黄芪颗粒每袋装4g （每1g相当于饮片3.7g)\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('黄芪颗粒每袋装4g （每1g相当于饮片3.7g)', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0001', task_type='guige_row')
+2026-06-23 13:50:58 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0001
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：黄芪颗粒每袋装4g （每1g相当于饮片3.7g)
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0001\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('黄芪颗粒每袋装4g （每1g相当于饮片3.7g)', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0001\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0001`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0001\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:50:58 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:51:14 base.py|run|agent运行完成:AgentResult(✓, turns=4, answer=...)
+2026-06-23 13:51:14 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0002', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0002\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0002\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：富马酸氯马斯汀口服溶液500ml：50mg（按C？？H？？ClNO计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('富马酸氯马斯汀口服溶液500ml：50mg（按C？？H？？ClNO计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0002', task_type='guige_row')
+2026-06-23 13:51:14 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0002
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：富马酸氯马斯汀口服溶液500ml：50mg（按C？？H？？ClNO计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0002\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('富马酸氯马斯汀口服溶液500ml：50mg（按C？？H？？ClNO计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0002\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0002`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0002\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:51:14 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:51:40 base.py|run|agent运行完成:AgentResult(✓, turns=3, answer={
+    "name": "bash",
+    "arguments": {
+        "...)
+2026-06-23 13:51:43 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0003', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0003\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0003\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：司库奇尤单抗注射液150mg（1ml）/支\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('司库奇尤单抗注射液150mg（1ml）/支', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0003', task_type='guige_row')
+2026-06-23 13:51:43 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0003
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：司库奇尤单抗注射液150mg（1ml）/支
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0003\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('司库奇尤单抗注射液150mg（1ml）/支', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0003\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0003`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0003\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:51:43 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:52:09 base.py|run|agent运行完成:AgentResult(✓, turns=9, answer=...)
+2026-06-23 13:52:09 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0004', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0004\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0004\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：醋酸地非法林注射液1ml：0.05mg（按C？？H？？N？O？计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('醋酸地非法林注射液1ml：0.05mg（按C？？H？？N？O？计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0004', task_type='guige_row')
+2026-06-23 13:52:09 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0004
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：醋酸地非法林注射液1ml：0.05mg（按C？？H？？N？O？计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0004\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('醋酸地非法林注射液1ml：0.05mg（按C？？H？？N？O？计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0004\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0004`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0004\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:52:09 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:52:29 base.py|run|agent运行完成:AgentResult(✓, turns=3, answer=...)
+2026-06-23 13:52:29 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0005', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0005\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0005\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：注射用甲泼尼龙琥珀酸钠40mg（以C？？H？？O？计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('注射用甲泼尼龙琥珀酸钠40mg（以C？？H？？O？计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0005', task_type='guige_row')
+2026-06-23 13:52:29 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0005
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：注射用甲泼尼龙琥珀酸钠40mg（以C？？H？？O？计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0005\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('注射用甲泼尼龙琥珀酸钠40mg（以C？？H？？O？计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0005\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0005`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0005\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:52:29 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:53:10 base.py|run|agent运行完成:AgentResult(✓, turns=8, answer=...)
+2026-06-23 13:53:10 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0006', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0006\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0006\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：盐酸沙瑞环素片60mg（按C？？H？？N？O？计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('盐酸沙瑞环素片60mg（按C？？H？？N？O？计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0006', task_type='guige_row')
+2026-06-23 13:53:10 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0006
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：盐酸沙瑞环素片60mg（按C？？H？？N？O？计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0006\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('盐酸沙瑞环素片60mg（按C？？H？？N？O？计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0006\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0006`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0006\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:53:10 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:53:47 base.py|run|agent运行完成:AgentResult(✓, turns=2, answer=...)
+2026-06-23 13:53:47 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0007', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0007\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0007\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0007', task_type='guige_row')
+2026-06-23 13:53:47 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0007
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0007\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('盐酸阿莫罗芬乳膏0.25%（20g:50mg）（以C21H35NO计）', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0007\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0007`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0007\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:53:47 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:54:21 base.py|run|agent运行完成:AgentResult(✓, turns=4, answer=验证通过。标化结果`20g:50mg(以C21H35NO计)`符合SOP半固体制剂格式要求：去除了药...)
+2026-06-23 13:54:21 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0008', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0008\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0008\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：氯化琥珀胆碱注射液10ml：0.2g\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('氯化琥珀胆碱注射液10ml：0.2g', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0008', task_type='guige_row')
+2026-06-23 13:54:21 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0008
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：氯化琥珀胆碱注射液10ml：0.2g
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0008\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('氯化琥珀胆碱注射液10ml：0.2g', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0008\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0008`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0008\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:54:21 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:54:33 base.py|run|agent运行完成:AgentResult(✓, turns=2, answer=...)
+2026-06-23 13:54:33 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0009', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0009\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0009\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：布地奈德福莫特罗吸入气雾剂（I）每瓶120揿，每揿含布地奈德91μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）5.1μg，递送剂量为布地奈德80μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）4.5μg\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('布地奈德福莫特罗吸入气雾剂（I）每瓶120揿，每揿含布地奈德91μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）5.1μg，递送剂量为布地奈德80μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）4.5μg', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0009', task_type='guige_row')
+2026-06-23 13:54:33 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0009
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：布地奈德福莫特罗吸入气雾剂（I）每瓶120揿，每揿含布地奈德91μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）5.1μg，递送剂量为布地奈德80μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）4.5μg
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0009\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('布地奈德福莫特罗吸入气雾剂（I）每瓶120揿，每揿含布地奈德91μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）5.1μg，递送剂量为布地奈德80μg和富马酸福莫特罗二水合物（按(C？？H？？N？O？)？·C？H？O？·2H？O计）4.5μg', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0009\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0009`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0009\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:54:33 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:57:19 base.py|run|agent运行完成:AgentResult(✓, turns=8, answer=经过对SOP的仔细核对，发现原文中存在以下问题需要人工核查：
+1. **分子式不完整**：原文中出现...)
+2026-06-23 13:57:19 runner.py|_run_guige_row_test_case|上下文构建完成:AgentContext(working_dir='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0010', input_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0010\\input.xlsx', output_file='C:\\Users\\admin\\AppData\\Local\\Temp\\1\\spreadsheetbench_dlbxkl1m\\20260622批次-0010\\output.xlsx', instruction='请对以下药品规格原文进行规格标化（单行任务）。\n\n规格(原)：盐酸甲氧氯普胺口服溶液200ml：200mg\n\n要求：\n1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。\n2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。\n3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。\n4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。\n5. 不要修改 A2 以外的单元格。', spreadsheet_content="('原始值', '标化值')\n('盐酸甲氧氯普胺口服溶液200ml：200mg', '')", instruction_type='Cell-Level Manipulation', answer_position='B2', instance_id='20260622批次-0010', task_type='guige_row')
+2026-06-23 13:57:19 base.py|run|提示词合成完成:Below is the specification standardization task you need to solve:
+
+### working_directory
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0010
+
+### instruction
+请对以下药品规格原文进行规格标化（单行任务）。
+
+规格(原)：盐酸甲氧氯普胺口服溶液200ml：200mg
+
+要求：
+1. 按已加载的 guige 技能（规格标化 SOP）将上述原文标化为标准「规格规范」字符串。
+2. 将标化结果写入 output.xlsx 的工作表 sheet 的 B2 单元格；A 列原始值保持不变。
+3. 若一条原文需拆成多条规格，在 B2 同一单元格内用英文分号「;」连接（不要拆成多行）。
+4. 若无法按 SOP 自动判定，在 B2 保留原文并在末尾标注「需人工核查」及简要原因。
+5. 不要修改 A2 以外的单元格。
+
+### spreadsheet_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0010\input.xlsx
+
+### spreadsheet_content
+('原始值', '标化值')
+('盐酸甲氧氯普胺口服溶液200ml：200mg', '')
+
+### instruction_type
+Cell-Level Manipulation
+
+### answer_position
+B2
+
+### output_path
+C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0010\output.xlsx
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0010`. Save output to exact path: `C:\Users\admin\AppData\Local\Temp\1\spreadsheetbench_dlbxkl1m\20260622批次-0010\output.xlsx`. Write the standardized value to `B2` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above.
+2026-06-23 13:57:19 agent.py|run_async|messages构建完成{messages}
+2026-06-23 13:57:29 base.py|run|agent运行完成:AgentResult(✓, turns=2, answer=...)
+2026-06-23 16:00:55 analyze_results.py|main|args:{args.eval_results},{args.log_dir}
+2026-06-23 16:02:36 analyze_results.py|main|args:{args.eval_results},{args.log_dir}
+2026-06-23 16:02:36 analyze_results.py|main|analyses改名字了
+2026-06-23 16:02:36 analyze_results.py|main|csv路径None,analyses:[InstanceAnalysis(instance_id='20260622批次-0001', passed=False, error_message="Value mismatch at sheet!B2 (golden row 1): expected '每袋装4g相当于原生药14.8g', got '4g(每1g相当于饮片3.7g)'", log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0001_FAILED.md', instruction='', soft_score=0.0, hard_score=0), InstanceAnalysis(instance_id='20260622批次-0002', passed=False, error_message='Output file not found', log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0002_FAILED.md', instruction='', soft_score=0.0, hard_score=0), InstanceAnalysis(instance_id='20260622批次-0003', passed=False, error_message="Value mismatch at sheet!B2 (golden row 3): expected '1ml:0.15g', got '1ml:150mg'", log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0003_FAILED.md', instruction='', soft_score=0.0, hard_score=0), InstanceAnalysis(instance_id='20260622批次-0004', passed=False, error_message="Value mismatch at sheet!B2 (golden row 4): expected '1ml:50µg', got '1ml:0.05mg(按C??H??N??O?计)'", log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0004_FAILED.md', instruction='', soft_score=0.0, hard_score=0), InstanceAnalysis(instance_id='20260622批次-0005', passed=False, error_message="Value mismatch at sheet!B2 (golden row 5): expected '40mg', got '注射用甲泼尼龙琥珀酸钠40mg(以C??H??O?计)需人工核查：括号内化学式不完整'", log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0005_FAILED.md', instruction='', soft_score=0.0, hard_score=0), InstanceAnalysis(instance_id='20260622批次-0006', passed=False, error_message="Value mismatch at sheet!B2 (golden row 6): expected '60mg', got '60mg(按C??H??N??O?计)'", log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0006_FAILED.md', instruction='', soft_score=0.0, hard_score=0), InstanceAnalysis(instance_id='20260622批次-0007', passed=False, error_message="Value mismatch at sheet!B2 (golden row 7): expected '20g:50mg', got '20g:50mg(以C21H35NO计)'", log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0007_FAILED.md', instruction='', soft_score=0.0, hard_score=0), InstanceAnalysis(instance_id='20260622批次-0008', passed=True, error_message='', log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0008_SUCCEED.md', instruction='', soft_score=1.0, hard_score=1), InstanceAnalysis(instance_id='20260622批次-0009', passed=False, error_message="Value mismatch at sheet!B2 (golden row 9): expected '布地奈德91µg,福莫特罗5.1µg/揿,120揿', got '每揿:布地奈德80μg,富马酸福莫特罗二水合物(按(C？？H？？N？O？)？·C？H？O？·2H？O计)4.5μg'", log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0009_FAILED.md', instruction='', soft_score=0.0, hard_score=0), InstanceAnalysis(instance_id='20260622批次-0010', passed=True, error_message='', log_file='outputs/logs\\cli_skill_preloaded_agent_20260622批次-0010_SUCCEED.md', instruction='', soft_score=1.0, hard_score=1)]
+2026-06-23 16:08:44 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0001进入LLM分析阶段
+2026-06-23 16:08:44 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-23 16:08:46 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-23 16:08:46 agent.py|run_async|messages构建完成{messages}
+2026-06-23 16:19:10 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0002进入LLM分析阶段
+2026-06-23 16:19:10 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-23 16:19:10 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-23 16:19:10 agent.py|run_async|messages构建完成{messages}
+2026-06-23 22:32:40 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0001进入LLM分析阶段
+2026-06-24 09:54:11 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0001进入LLM分析阶段
+2026-06-24 11:06:55 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0001进入LLM分析阶段
+2026-06-24 11:07:49 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 11:09:38 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 11:27:03 agent.py|run_async|messages构建完成{messages}
+2026-06-24 13:05:08 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0001进入LLM分析阶段
+2026-06-24 13:05:24 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 13:05:29 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 13:05:40 agent.py|run_async|messages构建完成{messages}
+2026-06-24 13:22:43 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0001进入LLM分析阶段
+2026-06-24 13:22:50 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 13:22:55 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 13:23:02 agent.py|run_async|messages构建完成{messages}
+2026-06-24 13:57:12 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0001进入LLM分析阶段
+2026-06-24 13:57:41 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 13:57:46 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 13:57:55 agent.py|run_async|messages构建完成{messages}
+2026-06-24 14:05:53 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0002进入LLM分析阶段
+2026-06-24 14:05:53 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 14:05:53 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 14:05:59 agent.py|run_async|messages构建完成{messages}
+2026-06-24 14:07:13 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0003进入LLM分析阶段
+2026-06-24 14:07:13 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 14:07:13 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 14:07:13 agent.py|run_async|messages构建完成{messages}
+2026-06-24 14:07:21 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0004进入LLM分析阶段
+2026-06-24 14:07:21 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 14:07:21 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 14:07:21 agent.py|run_async|messages构建完成{messages}
+2026-06-24 14:07:57 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0005进入LLM分析阶段
+2026-06-24 14:07:57 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 14:07:58 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 14:07:58 agent.py|run_async|messages构建完成{messages}
+2026-06-24 14:09:21 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0006进入LLM分析阶段
+2026-06-24 14:09:21 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 14:09:22 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 14:09:22 agent.py|run_async|messages构建完成{messages}
+2026-06-24 14:10:19 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0007进入LLM分析阶段
+2026-06-24 14:10:19 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 14:10:19 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 14:10:19 agent.py|run_async|messages构建完成{messages}
+2026-06-24 14:10:51 run_error_analysis.py|run_single_instance|analysis_output\20260622批次-0009进入LLM分析阶段
+2026-06-24 14:10:51 error_analysis_agent.py|run_error_analysis|创建OpenAIClient
+2026-06-24 14:10:52 error_analysis_agent.py|run_error_analysis|创建ReActAgent,system_prompt:{system_prompt},user_prompt:{user_prompt}
+2026-06-24 14:10:52 agent.py|run_async|messages构建完成{messages}
+2026-06-24 14:11:33 run_error_analysis.py|write_parsed_output|args.output_dir:analysis_output,
+                parsed_records数量:6,passed数量:7,total数量:14
+            

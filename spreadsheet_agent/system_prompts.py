@@ -11,7 +11,7 @@ SYSTEM_PROMPT_DIR = os.path.join(os.path.dirname(__file__), "system_prompt")
 def load_full_system_prompt(filename: str) -> str:
     """Load a full system prompt template from the system_prompt directory."""
     path = os.path.join(SYSTEM_PROMPT_DIR, filename)
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 

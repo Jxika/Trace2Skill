@@ -113,6 +113,17 @@ def generate_cell_names(range_str):
 # Cell-level comparison with rich diagnostics
 # ---------------------------------------------------------------------------
 
+def resolve_output_sheet(wb_proc, preferred_sheet):
+    """Resolve the output worksheet name, with fallback for minor naming differences."""
+    if preferred_sheet in wb_proc.sheetnames:
+        return preferred_sheet
+    if len(wb_proc.sheetnames) == 1:
+        return wb_proc.sheetnames[0]
+    if wb_proc.active is not None and wb_proc.active.title in wb_proc.sheetnames:
+        return wb_proc.active.title
+    return None
+
+
 def cell_level_compare(wb_gt, wb_proc, sheet_name, cell_range):
     """
     Compare cells in *cell_range* between two workbooks on *sheet_name*.
@@ -120,7 +131,8 @@ def cell_level_compare(wb_gt, wb_proc, sheet_name, cell_range):
     Returns (passed: bool, message: str, mismatches: list[dict]).
     The mismatches list contains one entry per failing cell for diagnostics.
     """
-    if sheet_name not in wb_proc.sheetnames:
+    proc_sheet = resolve_output_sheet(wb_proc, sheet_name)
+    if proc_sheet is None:
         available = ", ".join(wb_proc.sheetnames) if wb_proc.sheetnames else "(none)"
         msg = (
             f"Sheet '{sheet_name}' not found in output workbook. "
@@ -128,8 +140,16 @@ def cell_level_compare(wb_gt, wb_proc, sheet_name, cell_range):
         )
         return False, msg, []
 
+    if sheet_name not in wb_gt.sheetnames:
+        available = ", ".join(wb_gt.sheetnames) if wb_gt.sheetnames else "(none)"
+        msg = (
+            f"Sheet '{sheet_name}' not found in ground truth workbook. "
+            f"Available sheets: {available}"
+        )
+        return False, msg, []
+
     ws_gt = wb_gt[sheet_name]
-    ws_proc = wb_proc[sheet_name]
+    ws_proc = wb_proc[proc_sheet]
 
     cell_names = generate_cell_names(cell_range)
     mismatches = []
@@ -341,7 +361,9 @@ def main():
     )
     print_report(passed, summary, range_results, args.output_file, args.ground_truth, answer_position)
 
-    sys.exit(0 if passed else 1)
+    # Always exit 0 after printing the report. Pass/fail is in stdout (Result: PASS/FAIL).
+    # Non-zero exit breaks IDE debuggers when invoked via subprocess from evaluate_output tool.
+    sys.exit(0)
 
 
 if __name__ == "__main__":

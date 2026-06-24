@@ -64,7 +64,7 @@ def find_log_file(log_dir: str, instance_id: str) -> str | None:
 
 def load_eval_results(eval_file: str) -> list[dict]:
     """Load evaluation results from JSON file."""
-    with open(eval_file, "r") as f:
+    with open(eval_file, "r",encoding="utf-8") as f:
         data = json.load(f)
 
     # Handle both formats: with "results" key or direct list

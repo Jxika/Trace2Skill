@@ -27,9 +27,20 @@ from simple_log import SimpleLog
 SCRIPT_DIR = Path(__file__).resolve().parent
 SYSTEM_PROMPT_PATH = SCRIPT_DIR / "error_analysis_system.txt"
 USER_PROMPT_PATH = SCRIPT_DIR / "error_analysis_user.txt"
+SYSTEM_PROMPT_GUIGE_PATH = SCRIPT_DIR / "error_analysis_system_guige.txt"
+USER_PROMPT_GUIGE_PATH = SCRIPT_DIR / "error_analysis_user_guige.txt"
 EVALUATE_SCRIPT = SCRIPT_DIR / "evaluate_output.py"
 
+'''
+1.找出output.xlsx 和 gold.xlsx 的差异
+2.尝试修复并写出output_fixed.xlsx
+3.重新评估直到PASS，才能说明根因分析可靠
 
+.分析Agent有bash权限，能改文件
+.评估逻辑放在独立脚本里，Agent改不了比对规则
+.保证PASS/FAIL 判定客观、与 evaluate_with_official.py 一致
+
+'''
 def create_evaluate_tool(
     working_dir: str,
     pass_flag: dict[str, bool] | None = None,
@@ -78,6 +89,8 @@ def create_evaluate_tool(
             if result.stderr:
                 output += f"\n[STDERR]\n{result.stderr}" if output else result.stderr
             output = output.strip() if output.strip() else "[Command completed with no output]"
+            if result.returncode != 0 and "[Exit code:" not in output:
+                output += f"\n[Exit code: {result.returncode}]"
             if pass_flag is not None:
                 passed = bool(re.search(r"^Result:\s+PASS\b", output, re.MULTILINE))
                 if passed:
@@ -133,6 +146,7 @@ def sanitize_agent_log(raw_log: str) -> str:
 
 
 def format_user_prompt(agent_log_text: str,working_dir: str,evaluate_usage: str,
+    user_prompt_path: Path = USER_PROMPT_PATH,
 ) -> str:
     """
     Read the user prompt template and substitute placeholders.
@@ -146,18 +160,35 @@ def format_user_prompt(agent_log_text: str,working_dir: str,evaluate_usage: str,
     Uses .replace() instead of .format() because the JSON content may
     contain curly braces that would break str.format().
     """
-    template = USER_PROMPT_PATH.read_text(encoding="utf-8")
+    template = user_prompt_path.read_text(encoding="utf-8")
     result = template.replace("{agent_log}", agent_log_text)
     result = result.replace("{working_dir}", working_dir)
     result = result.replace("{evaluate_usage}", evaluate_usage)
     return result
 
 
-def build_evaluate_usage(working_dir: str, answer_position: str | None) -> str:
+def build_evaluate_usage(working_dir: str, answer_position: str | None, is_guige: bool = False) -> str:
     """Build the evaluate_output usage instructions for the user prompt."""
     agent_work = f"{working_dir}/agent_work"
     output_path = f"{agent_work}/output.xlsx"
     gold_path = f"{agent_work}/gold.xlsx"
+
+    if answer_position and is_guige:
+        return (
+            f'使用 `evaluate_output` 工具评估标化结果（比较 B2 与 gold）：\n'
+            f'\n'
+            f'Action:\n'
+            f'{{\n'
+            f'    "name": "evaluate_output",\n'
+            f'    "arguments": {{\n'
+            f'        "output_file": "{output_path}",\n'
+            f'        "ground_truth": "{gold_path}",\n'
+            f'        "answer_position": "{answer_position}"\n'
+            f'    }}\n'
+            f'}}\n'
+            f'\n'
+            f'`gold.xlsx` 的 B2 为该行的标准规格规范；`answer_position` 为 `{answer_position}`。\n'
+        )
 
     if answer_position:
         return (
@@ -195,7 +226,7 @@ def run_error_analysis(
     answer_position: str | None = None,max_turns: int = 20,base_url: str | None = None,
     api_key: str | None = None,generation_config: dict | None = None,
     llm_client: str = "openai",api_chat_config: str = "config/llm_api.json",
-    verbose: bool = True,
+    verbose: bool = True,task_type: str = "",
 ) -> str:
     """
     Run the error analysis agent on a single instance.
@@ -217,10 +248,16 @@ def run_error_analysis(
     """
     agent_log_text = sanitize_agent_log(agent_log_content)
 
-    evaluate_usage = build_evaluate_usage(analysis_dir, answer_position)
+    is_guige = task_type in ("guige_row", "guige")
+    evaluate_usage = build_evaluate_usage(analysis_dir, answer_position, is_guige=is_guige)
 
-    system_prompt = format_system_prompt(analysis_dir, SYSTEM_PROMPT_PATH)
-    user_prompt = format_user_prompt(agent_log_text, analysis_dir, evaluate_usage)
+    system_prompt_path = SYSTEM_PROMPT_GUIGE_PATH if is_guige else SYSTEM_PROMPT_PATH
+    user_prompt_path = USER_PROMPT_GUIGE_PATH if is_guige else USER_PROMPT_PATH
+
+    system_prompt = format_system_prompt(analysis_dir, system_prompt_path)
+    user_prompt = format_user_prompt(
+        agent_log_text, analysis_dir, evaluate_usage, user_prompt_path=user_prompt_path,
+    )
 
     bash_tool = create_bash_tool(working_dir=analysis_dir)
     eval_flag: dict[str, bool] = {"passed": False}

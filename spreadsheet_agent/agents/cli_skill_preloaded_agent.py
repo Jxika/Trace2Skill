@@ -15,6 +15,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
@@ -84,7 +85,7 @@ def discover_skills(skills_dir: str) -> list[SkillMetadata]:
 def read_skill_content(skill: SkillMetadata) -> str:
     """Read the full content of a skill file, stripping YAML frontmatter."""
     try:
-        with open(skill.file_path, "r") as f:
+        with open(skill.file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Strip YAML frontmatter (already parsed into metadata)
@@ -241,6 +242,14 @@ class CLISkillPreloadedAgent(BaseSpreadsheetAgent):
             (meta, read_skill_content(meta)) for meta in metadata_list
         ]
 
+    def _is_guige_mode(self, task_type: str = "") -> bool:
+        if task_type in ("guige_row", "guige"):
+            return True
+        skills_path = Path(self.skills_dir).resolve()
+        if skills_path.name == "guige":
+            return True
+        return any(part == "guige" for part in skills_path.parts)
+
     @property
     def name(self) -> str:
         return "cli_skill_preloaded_agent"
@@ -250,7 +259,7 @@ class CLISkillPreloadedAgent(BaseSpreadsheetAgent):
         skills_section = render_preloaded_skills_section(self._skills, self.skills_dir)
         return SPREADSHEET_SKILL_PRELOADED_CONTEXT.format(skills_section=skills_section)
 
-    def get_system_template(self) -> str:
+    def get_system_template(self, task_type: str = "") -> str:
         # Load skill content and directory for the v1 template
         if self._skills:
             metadata, content = self._skills[0]
@@ -260,8 +269,13 @@ class CLISkillPreloadedAgent(BaseSpreadsheetAgent):
             skill_content = "(No skill loaded)"
             skill_dir = self.skills_dir
 
+        template_name = (
+            "cli_skill_preloaded_guige_system_v1.txt"
+            if self._is_guige_mode(task_type)
+            else "cli_skill_preloaded_full_system_v1.txt"
+        )
         return render_full_system_prompt(
-            "cli_skill_preloaded_full_system_v1.txt",
+            template_name,
             skill_content=skill_content,
             skill_dir=skill_dir,
         )
@@ -274,14 +288,41 @@ class CLISkillPreloadedAgent(BaseSpreadsheetAgent):
     向LLM发送具体的任务请求，指明工具目录（working_directory）、原电子表格的位置
     '''
     def build_task_prompt(self, context) -> str:
-        """Build task prompt with absolute paths.
-
-        Unlike CLISkillAgent, this does not include a skills_directory field
-        since skill content is already embedded in the system prompt.
-        """
+        """Build task prompt with absolute paths."""
         working_dir = os.path.abspath(context.working_dir)
         input_file = os.path.abspath(context.input_file)
         output_file = os.path.abspath(context.output_file)
+        task_type = getattr(context, "task_type", "")
+
+        if self._is_guige_mode(task_type):
+            return f"""Below is the specification standardization task you need to solve:
+
+### working_directory
+{working_dir}
+
+### instruction
+{context.instruction}
+
+### spreadsheet_path
+{input_file}
+
+### spreadsheet_content
+{context.spreadsheet_content}
+
+### instruction_type
+{context.instruction_type}
+
+### answer_position
+{context.answer_position}
+
+### output_path
+{output_file}
+
+---
+**REMINDER**: This is a single-row 规格标化 task. Write files ONLY in `{working_dir}`. Save output to exact path: `{output_file}`. Write the standardized value to `{context.answer_position}` only.
+---
+
+Standardize the specification per the guige skill and save output.xlsx to the exact output_path shown above."""
 
         return f"""Below is the spreadsheet manipulation question you need to solve:
 

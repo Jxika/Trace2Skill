@@ -1,0 +1,24 @@
+以下是目标 Agent 执行**规格标化**任务的日志（含 instruction 与规格原文）：
+
+<agent_log>
+{agent_log}
+</agent_log>
+
+请在你的工作目录中完成错误分析：`{working_dir}`
+
+相关文件：
+- `agent_work/input.xlsx` — 单行输入（A2 为规格原文）
+- `agent_work/output.xlsx` — Agent 标化输出（应写入 B2）
+- `agent_work/gold.xlsx` — 该行标准标化结果（B2 为期望的规格规范字符串）
+
+将修正后的文件写入 `agent_work/output_fixed.xlsx`。
+
+## 评估工具用法
+
+{evaluate_usage}
+
+评估报告包含 PASS/FAIL、逐范围结果、以及不匹配单元格的期望值与实际值。
+
+请严格按系统提示的工作流执行，并用**中文**撰写 Failure Cause / Failure Memory 的正文内容。
+
+编写 Python 脚本时：使用 UTF-8，中文字符串直接写中文，**不要**使用 `\uXXXX` 转义。

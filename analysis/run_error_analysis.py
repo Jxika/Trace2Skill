@@ -31,7 +31,7 @@ if str(SRC_DIR) not in sys.path:
 
 from analysis.report_parsing import collect_error_records
 from analysis.error_analysis_agent import run_error_analysis
-from spreadsheetbench_support import find_spreadsheet_dir, load_dataset
+from spreadsheetbench_support import find_output_dir, find_spreadsheet_dir, load_dataset
 
 from simple_log import SimpleLog
 
@@ -70,17 +70,50 @@ def find_log_file(logs_dir: str, instance_id: str) -> str | None:
     return None
 
 
-def find_work_dir(work_dir: str, instance_id: str) -> str | None:
+def find_work_dir(work_dir: str, instance_id: str, instance_meta: dict | None = None) -> str | None:
     """Find the work directory for an instance."""
+    if instance_meta and instance_meta.get("task_type") == "guige_row":
+        inst = {**instance_meta, "id": instance_id}
+        output_path = find_output_dir(work_dir, inst)
+        if os.path.isdir(output_path):
+            return output_path
+
     pattern = os.path.join(work_dir, f"{instance_id}_*")
     matches = glob.glob(pattern)
     if matches:
         return matches[0]
-    # Also try exact match (in case the dir is just the instance_id)
     exact = os.path.join(work_dir, instance_id)
     if os.path.isdir(exact):
         return exact
     return None
+
+
+def create_guige_reference_gold(
+    batch_gold_path: str,
+    instance_meta: dict,
+    dest_path: str,
+) -> None:
+    """Build a single-row gold.xlsx (B2 = expected) for guige error analysis."""
+    import openpyxl
+
+    golden_sheet = instance_meta.get("golden_sheet", "Sheet1")
+    golden_row = int(instance_meta.get("golden_row", instance_meta.get("source_row", 1)))
+    answer_sheet = instance_meta.get("answer_sheet", "sheet")
+    raw_value = instance_meta.get("raw_value", "")
+
+    wb_src = openpyxl.load_workbook(batch_gold_path, data_only=True)
+    expected = wb_src[golden_sheet].cell(golden_row, 1).value
+    wb_src.close()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = answer_sheet
+    ws["A1"] = "原始值"
+    ws["B1"] = "标化值"
+    ws["A2"] = raw_value
+    ws["B2"] = expected
+    wb.save(dest_path)
+    wb.close()
 
 
 def build_instance_index(data_path: str) -> dict[str, dict]:
@@ -186,6 +219,7 @@ def setup_analysis_dir(
     log_path: str,
     agent_work_path: str | None,
     gold_path: str | None,
+    instance_meta: dict | None = None,
 ) -> str:
     """
     Create the analysis workspace for a single instance.
@@ -220,9 +254,13 @@ def setup_analysis_dir(
                     shutil.rmtree(dst)
                 shutil.copytree(src, dst)
 
-    # Copy gold file
+    # Copy gold file (guige: build single-row reference matching output layout)
     if gold_path and os.path.isfile(gold_path):
-        shutil.copy2(gold_path, os.path.join(agent_work_dest, "gold.xlsx"))
+        gold_dest = os.path.join(agent_work_dest, "gold.xlsx")
+        if instance_meta and instance_meta.get("task_type") == "guige_row":
+            create_guige_reference_gold(gold_path, instance_meta, gold_dest)
+        else:
+            shutil.copy2(gold_path, gold_dest)
 
     return analysis_dir
 
@@ -276,18 +314,21 @@ def run_single_instance(
 
     effective_work_dir = work_dir_override or args.work_dir
     lookup_id = dataset_id or instance_id
-    agent_work_path = find_work_dir(effective_work_dir, lookup_id)
-    if not agent_work_path:
-        log(f"  WARNING: No work directory found for {instance_id}")
 
     instance_meta = instance_index.get(str(lookup_id))
     answer_position = None
     gold_path = None
+    task_type = ""
     if instance_meta:
         answer_position = instance_meta.get("answer_position") or None
         gold_path = find_gold_file(args.data_path, instance_meta)
+        task_type = instance_meta.get("task_type", "")
     else:
         log(f"  WARNING: Instance {instance_id} not found in dataset")
+
+    agent_work_path = find_work_dir(effective_work_dir, lookup_id, instance_meta)
+    if not agent_work_path:
+        log(f"  WARNING: No work directory found for {instance_id}")
 
     if not gold_path:
         log(f"  WARNING: No gold file found for {instance_id}")
@@ -300,6 +341,7 @@ def run_single_instance(
         log_path=log_path,
         agent_work_path=agent_work_path,
         gold_path=gold_path,
+        instance_meta=instance_meta,
     )
     log(f"  Analysis dir: {analysis_dir}")
 
@@ -322,6 +364,7 @@ def run_single_instance(
             llm_client=args.llm_client,
             api_chat_config=args.api_chat_config,
             verbose=args.verbose,
+            task_type=task_type,
         )
         error = None
     except Exception as e:
@@ -341,11 +384,11 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run error analysis agent on SpreadsheetBench instances."
     )
-    parser.add_argument("--data_path", required=True,help="SpreadsheetBench dataset path (e.g. data/spreadsheetbench_verified/spreadsheetbench_verified_400)",)
+    parser.add_argument("--data_path", default="data", help="SpreadsheetBench dataset path (e.g. data/spreadsheetbench_verified/spreadsheetbench_verified_400)",)
     #原Agent的工作产物目录，用于复制 input.xlsx、output.xlsx 等到分析工作区。
-    parser.add_argument("--work_dir", required=True,help="Target agent's work directory (e.g. agent_output/cli_only_work)",)
+    parser.add_argument("--work_dir", default="outputs/规格", help="Target agent's work directory (e.g. agent_output/cli_only_work)",)
     #Agent轨迹日志目录
-    parser.add_argument("--logs_dir", required=True,help="Target agent's logs directory (e.g. agent_output/cli_only_logs)",)
+    parser.add_argument("--logs_dir", default="outputs/logs" ,help="Target agent's logs directory (e.g. agent_output/cli_only_logs)",)
     
     #分析结果保存目录，默认 analysis_output/
     #每题一个子目录：
@@ -362,7 +405,7 @@ def main():
     #只分析执行ID，逗号分隔
     parser.add_argument("--instance_ids", default=None,help="Comma-separated specific instance IDs to analyze",)
     
-    parser.add_argument("--model", required=True, help="Model name (OpenAI-compatible)")
+    parser.add_argument("--model", default="deepseek-v4-flash", help="Model name (OpenAI-compatible)")
     
     parser.add_argument("--llm_client",type=str,default="openai",choices=["openai", "api_chat"],help="LLM client backend to use",)
     
@@ -376,7 +419,7 @@ def main():
     
     parser.add_argument("--max_turns", type=int, default=50, help="Max agent turns (default: 20)")
     
-    parser.add_argument("--parsed_output",default=None,help="Optional path for parsed JSON records (default: <output_dir>/parsed_error_records.json)",)
+    parser.add_argument("--parsed_output",default="parsed_error_records.json",help="Optional path for parsed JSON records (default: <output_dir>/parsed_error_records.json)",)
     parser.add_argument("--workers", type=int, default=1, help="Number of parallel workers")
     parser.add_argument("--verbose", action="store_true", help="Verbose logging")
     parser.add_argument("--sample", type=int, default=None, help="Only analyze the first N instances")
@@ -436,7 +479,10 @@ def main():
                 parsed_records数量:{len(parsed_records)},passed数量:{passed},total数量:{total}
             """)
         parsed_output = args.parsed_output or os.path.join(args.output_dir, "parsed_error_records.json")
-        Path(parsed_output).write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
+        Path(parsed_output).write_text(
+            json.dumps(parsed_records, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
         print(
             f"Parsed pass-gated records: {len(parsed_records)} from {passed}/{total} reports -> {parsed_output}"
         )
@@ -524,7 +570,10 @@ def _run_repeat_error_analysis(args) -> None:
     def write_parsed_output() -> str:
         parsed_records, passed, total = collect_error_records(args.output_dir)
         parsed_output = args.parsed_output or os.path.join(args.output_dir, "parsed_error_records.json")
-        Path(parsed_output).write_text(json.dumps(parsed_records, indent=2), encoding="utf-8")
+        Path(parsed_output).write_text(
+            json.dumps(parsed_records, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
         print(
             f"Parsed pass-gated records: {len(parsed_records)} from {passed}/{total} reports -> {parsed_output}"
         )

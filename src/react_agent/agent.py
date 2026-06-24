@@ -348,7 +348,7 @@ class ReActAgent:
                     obs_display = observation[:500] + "..." if len(observation) > 500 else observation
                     print(f"   [Observation] {obs_display}")
 
-                if self.on_step: #如果配置了 on_step,调用回调
+                if self.on_step: #如果配置了 on_step 是ReAct Agent的逐步回钩子：每完成一轮【思考->行动->观察】，就把这一步
                     self.on_step(step)
 
                 # Reset format error count on successful action

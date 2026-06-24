@@ -51,7 +51,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--working_dir",type=str, default=None,help="Working directory for agent execution",)
    
     #技能根目录，需包含xlsx、xlsx-122B、xlsx-35B等白名单技能。若指向单个技能目录（含SKILL.md）,会自动上溯到父目录。
-    parser.add_argument("--skills_dir",type=str,default=str(Path(__file__).resolve().parent / "spreadsheet_agent" / "skills"),help="Path to spreadsheet skills root directory",)
+    parser.add_argument("--skills_dir",type=str,default=str(Path(__file__).resolve().parent / "spreadsheet_agent" / "skills"/"guige"),help="Path to spreadsheet skills root directory",)
     
     #使用的LLM模型名。
     parser.add_argument("--model",type=str,default="deepseek-v4-flash",help="Model to use",)
@@ -111,7 +111,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--shuffle_seed",type=int,default=None,help="Shuffle instances with this fixed seed",)
     
     #None 打乱后只取前 N 个实例。
-    parser.add_argument("--sample",type=int,default=None,help="After shuffling, take only the first N instances",)
+    parser.add_argument("--sample",type=int,default=10,help="After shuffling, take only the first N instances",)
     return parser
 
 #启动时的参数合法性
@@ -435,7 +435,7 @@ def run_sequential(args):
         },
     )
     with open(results_file, "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, indent=2)
+        json.dump(payload, fh, indent=2, ensure_ascii=False)
     print(f"\nResults saved to: {results_file}")
 
 #单个线程负责一批实例
@@ -544,7 +544,7 @@ def run_parallel(args):
         },
     )
     with open(results_file, "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, indent=2)
+        json.dump(payload, fh, indent=2, ensure_ascii=False)
     print(f"\nResults saved to: {results_file}")
 
 '''

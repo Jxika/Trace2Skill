@@ -27,6 +27,7 @@ class AgentContext:
     instruction_type: str = ""
     answer_position: str = ""
     instance_id: str = ""  # Unique identifier for this instance (e.g., "13-1")
+    task_type: str = ""  # e.g. "guige_row" for row-level specification standardization
 
 
 class ChatHistoryLogger:
@@ -222,7 +223,7 @@ class BaseSpreadsheetAgent(ABC):
         """Return the system prompt for this agent (legacy method)."""
         pass
 
-    def get_system_template(self) -> str | None:
+    def get_system_template(self, task_type: str = "") -> str | None:
         """Return a full system prompt template for this agent."""
         return None
 
@@ -298,13 +299,13 @@ Execute Python code to solve the question and save the modified spreadsheet to t
 
         return on_step
 
-    def _ensure_agent(self, working_dir: str) -> ReActAgent:
+    def _ensure_agent(self, working_dir: str, task_type: str = "") -> ReActAgent:
         """Ensure the agent is created with the correct working directory."""
         if self._agent is None or self._working_dir != working_dir:
             self._working_dir = working_dir
             tools = self.create_tools(working_dir)
 
-            system_template = self.get_system_template()
+            system_template = self.get_system_template(task_type=task_type)
 
             # Get patterns that should not be truncated (e.g., skill files)
             no_truncate_patterns = self.get_no_truncate_patterns()
@@ -347,13 +348,13 @@ Execute Python code to solve the question and save the modified spreadsheet to t
         os.environ["OUTPUT_FILE"] = context.output_file
 
         # Build and run
-        agent = self._ensure_agent(context.working_dir)
+        agent = self._ensure_agent(context.working_dir, task_type=context.task_type)
         task_prompt = self.build_task_prompt(context)
 
         # Start logging session and log initial messages
         if self._logger:
             self._logger.start_session(self.name, task_prompt, context)
-            system_template = self.get_system_template()
+            system_template = self.get_system_template(task_type=context.task_type)
             if system_template:
                 full_system_prompt = agent.converter.build_system_prompt(
                     tools=agent.tool_registry.list_tools(),

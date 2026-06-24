@@ -186,11 +186,18 @@ def compare_guige_row(
 
     if golden_sheet not in wb_gt.sheetnames:
         return False, f"Worksheet '{golden_sheet}' not found in ground truth"
+
+    resolved_output_sheet = output_sheet
     if output_sheet not in wb_out.sheetnames:
-        return False, f"Worksheet '{output_sheet}' not found in output"
+        if len(wb_out.sheetnames) == 1:
+            resolved_output_sheet = wb_out.sheetnames[0]
+        elif wb_out.active is not None and wb_out.active.title in wb_out.sheetnames:
+            resolved_output_sheet = wb_out.active.title
+        else:
+            return False, f"Worksheet '{output_sheet}' not found in output"
 
     expected = wb_gt[golden_sheet].cell(golden_row, golden_col).value
-    actual = wb_out[output_sheet][output_cell].value
+    actual = wb_out[resolved_output_sheet][output_cell].value
     if not compare_cell_value(expected, actual):
         return False, (
             f"Value mismatch at {output_sheet}!{output_cell} "
@@ -253,20 +260,27 @@ def find_spreadsheet_dir(data_path, instance):
 def find_output_dir(output_base, instance):
     instance_id = str(instance["id"])
     spreadsheet_path = str(instance.get("spreadsheet_path", instance_id))
+    batch_name = os.path.basename(spreadsheet_path.rstrip("/\\"))
 
     if instance.get("task_type") == "guige_row":
         candidates = [
             os.path.join(output_base, spreadsheet_path, instance_id),
+            os.path.join(output_base, batch_name, instance_id),
             os.path.join(output_base, instance_id),
         ]
     else:
         candidates = [
             os.path.join(output_base, spreadsheet_path),
+            os.path.join(output_base, batch_name),
             os.path.join(output_base, instance_id),
         ]
 
     for path in candidates:
         if os.path.isdir(path):
             return path
+
+    for root, dirs, _ in os.walk(output_base):
+        if instance_id in dirs:
+            return os.path.join(root, instance_id)
 
     return candidates[0]

@@ -376,8 +376,8 @@ def main():
 
     # Save results
     results_file = args.results_file or os.path.join(args.output_dir, "eval_official_results.json")
-    with open(results_file, "w") as f:
-        json.dump(eval_result, f, indent=2)
+    with open(results_file, "w", encoding="utf-8") as f:
+        json.dump(eval_result, f, indent=2, ensure_ascii=False)
     print(f"Results saved to: {results_file}")
 
 
@@ -438,8 +438,8 @@ def _run_repeat_evaluation(args) -> None:
         )
         all_seed_results[seed_name] = result
         per_seed_file = os.path.join(seed_dir.path, "eval_official_results.json")
-        with open(per_seed_file, "w") as f:
-            json.dump(result, f, indent=2)
+        with open(per_seed_file, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
         _print_summary(result["summary"], label=seed_name)
         print(f"Results saved to: {per_seed_file}")
 
@@ -480,13 +480,13 @@ def _print_aggregate_summary(all_seed_results: dict) -> None:
    最终在终端中打印包全局通过率、分类准确率等信息的统计报告，并将每一题成功与否的明细保存到 eval_official_results.json 中。
 '''
 if __name__ == "__main__":
-    import sys
-    sys.argv=[
-        "evaluate_with_official.py",
-        "--data_path","data",
-        "--output_dir","outputs/spreadsheetbench",
-        "--start_idx","0",
-        "--end_idx","10",
-        "--verbose",
-    ]
+    # import sys
+    # sys.argv=[
+    #     "evaluate_with_official.py",
+    #     "--data_path","data",
+    #     "--output_dir","outputs/spreadsheetbench",
+    #     "--start_idx","0",
+    #     "--end_idx","10",
+    #     "--verbose",
+    # ]
     main()

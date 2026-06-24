@@ -11,7 +11,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 
 from react_agent import tool
 
-
+'''
+给Agent发一个【只能在指定文件夹里跑shell的执行能力，是本项目里Agent操作文件、跑Python写excel的唯一手段】
+'''
+#create_bash_tool 是一个工厂函数：根据传入的工作目录，生成一个给 ReAct Agent用的bash工具，
+#让LLM能在指定目录里执行shell命令。
+#返回的bash函数每次执行都会在 cwd=working_dir 下跑命令，实现目录隔离。
 def create_bash_tool(working_dir: str, timeout: int = 120):
     """
     Create a bash execution tool for running commands.
@@ -20,7 +25,7 @@ def create_bash_tool(working_dir: str, timeout: int = 120):
         working_dir: Directory where commands will be executed
         timeout: Command timeout in seconds
     """
-
+   
     @tool(name="bash")
     def bash(command: str) -> str:
         """

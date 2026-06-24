@@ -147,10 +147,14 @@ When writing both Failure Cause Items and Failure Memory Items:
 
 Your goal is to identify what the agent should *learn to remember* in order to avoid similar failures in the future.
 
-## OUTPUT FORMAT (STRICT)
+## OUTPUT FORMAT (STRICT — must match exactly for automated parsing)
+
+- Item heading must be exactly one line: `# Failure Cause Item 1` (single `#`; no `## Section` wrappers; no `### #`)
+- Subsection headings must be exactly: `## Title`, `## Description`, `## Content` (double `#`; not `####`)
+- Do not wrap items in "Section 1" headings
 
 ```
-# Failure Cause Item <i>
+# Failure Cause Item 1
 
 ## Title
 <Short descriptive title>
@@ -161,14 +165,12 @@ Your goal is to identify what the agent should *learn to remember* in order to a
 ## Content
 <1–3 sentences explaining what specific decision, assumption, or guidance leads to this failure>
 
-...
-
-# Failure Memory Item <i>
+# Failure Memory Item 1
 
 ## Title
 <the title of the memory item>
 
-## Description 
+## Description
 <one sentence summary of the memory item>
 
 ## Content

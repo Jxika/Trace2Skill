@@ -321,6 +321,7 @@ class SpreadsheetBenchRunner:
         if os.path.exists(work_output):
             os.remove(work_output)
 
+        #('原始值', '标化值')\n('黄芪颗粒每袋装4g （每1g相当于饮片3.7g)', '')
         spreadsheet_content = get_spreadsheet_content(work_input)
         context = AgentContext(
             working_dir=task_working_dir,
@@ -331,6 +332,7 @@ class SpreadsheetBenchRunner:
             instruction_type=instance.instruction_type,
             answer_position=instance.answer_position,
             instance_id=instance.id,
+            task_type=instance.metadata.get("task_type", "guige_row"),
         )
         with SimpleLog("simple/simple_log.txt") as log:
             log.write(f"runner.py|_run_guige_row_test_case|上下文构建完成:{context}")
@@ -419,6 +421,7 @@ class SpreadsheetBenchRunner:
             instruction_type=instance.instruction_type,
             answer_position=instance.answer_position,
             instance_id=instance.id,  # Use instance ID for log filename
+            task_type=instance.metadata.get("task_type", ""),
         )
         with SimpleLog("simple/simple_log.txt") as log:
             log.write(f"runner.py|_run_test_case|上下文构建完成:{context}")
@@ -557,8 +560,8 @@ class SpreadsheetBenchRunner:
             ],
         }
 
-        with open(results_file, "w") as f:
-            json.dump(result_dict, f, indent=2)
+        with open(results_file, "w", encoding="utf-8") as f:
+            json.dump(result_dict, f, indent=2, ensure_ascii=False)
 
         print(f"\n{'='*60}")
         print(f"BENCHMARK COMPLETE")
